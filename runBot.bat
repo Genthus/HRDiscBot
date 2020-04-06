@@ -1,0 +1,1 @@
+start cmd.exe /k python C:\Users\solra\Documents\HRProject\HRProjectMain.py
