@@ -11,7 +11,7 @@ gameChallangeRoom = None
 gameIsRunning = False
 firstRoundIsOver = False
 
-challangeSize = [2,3,3,4,4,5,4]
+challangeSize = [1,3,3,4,4,5,4]
 
 currentRound = 0
 roundTime = [3,4,5,5,6,6,6]
@@ -25,7 +25,8 @@ playersWhoVoted = []
 
 currentPlayerList = []
 playerClassList = []
-leader = None
+leaderRole = None
+leaderPlayer = None
 gameState = None
 playersToBeChallanged = []
 playersNominated = []
@@ -66,11 +67,12 @@ async def personalMessage(playerClass, message):
 
 #Challange room transfer
 async def challangeTransfer():
+    global playersNominated
     playersToBeChallanged = playersNominated
     playersNominated = []
     for pl in playersToBeChallanged:
-        playersToBeChallanged.user.move_to(gameChallangeRoom)
-        personalMessage(pl, 'You are now in the challange room, prepare yourselves')
+        await playersToBeChallanged.user.move_to(gameChallangeRoom)
+        await personalMessage(pl, 'You are now in the challange room, prepare yourselves')
 
 #Mute everyone in a voice channel
 async def muteVoiceChannel(channelToMute):
@@ -83,69 +85,85 @@ async def unmuteVoiceChannel(channelToMute):
 #Returns list of current players as a message
 async def playerListMessage():
     message = ''
-    n=1
+    m=1
     for pl in playerClassList:
-        message += f'{n}. {pl.user.name}\n'
+        message += f'{m}. {pl.user.name}\n'
         n=+1
     return(message)
 
 #Switch leader role
 async def switchLeader():
-    if len(leader.members) > 0:
-        currentLeader = leader.members[0]
-        await currentLeader.remove_roles(leader)
+    if len(leaderRole.members) > 0:
+        global leaderPlayer
+        currentLeader = leaderPlayer
+        await leaderPlayer.user.remove_roles(leaderRole)
+        leaderFound = False
         #Cycle to find leader and give to the next person
         #This cycles in the order they joined the lobby
         for pl in playerClassList:
             if leaderFound == True:
-                await pl.give_role(leader)
-            if pl.user == currentLeader:
+                await pl.user.give_role(leaderRole)
+                leaderPlayer = pl
+            if pl == currentLeader:
                 leaderFound = True
                 if pl == playerClassList[-1]:
-                    playerClassList[0].user.give_role(leader)
+                    await playerClassList[0].user.add_roles(leaderRole)
+                    leaderPlayer = pl
 
 #Voting function
 async def startVote():
+    global playersNominated, playersWhoVoted, votingOpen, yesVotes, noVotes
     votingOpen = True
-    globalMessage('The voting proccess is now open, type "vote yes" or "vote no"\n The nominated party is:')
+    await globalMessage('The voting proccess is now open, type "vote yes" or "vote no"\nThe nominated party is:')
     for pl in playersNominated:
-        globalMessage(f'{pl.user.name}')
-    globalMessage('You have 15 seconds to vote.')
+        await globalMessage(f'{pl.user.name}')
+    await globalMessage('You have 15 seconds to vote.')
     await asyncio.sleep(15)
     if yesVotes > noVotes:
-        globalMessage(f'The vote has passed with {yesVotes} yes votes against {noVotes}\n In 15 seconds the players will be sent to the challange room.')
+        await globalMessage(f'The vote has passed with {yesVotes} yes votes against {noVotes}\nIn 15 seconds the players will be sent to the challange room.')
         await asyncio.sleep(15)
-        switchGameState(2)
+        await switchLeader()
+        playersNominated = []
+        playersWhoVoted = []
+        votingOpen = False
+        yesVotes = 0
+        noVotes = 0
+        await switchGameState(2)
     else:
-        globalMessage("The vote didn't pass, leadership will be transfered and the nomination process will begin again.")
+        await globalMessage("The vote didn't pass, leadership will be transfered and the nomination process will begin again.")
         #TO-DO restart party making round
-        switchGameState(1)
+        await switchLeader()
+        playersNominated = []
+        playersWhoVoted = []
+        votingOpen = False
+        yesVotes = 0
+        noVotes = 0
+        await switchGameState(1)
 
-    switchLeader()
-    playersNominated = []
-    playersWhoVoted = []
-    votingOpen = False
-    yesVotes = 0
-    noVotes = 0
 
 #Setup the round timer
 async def setRoundTimer(round):
-    currentTimer = rounTime[round]*60
+    global currentTimer, currentTimerString
+    currentTimer = roundTime[round]*60
     originalTime = currentTimer
-    timerMessage = globalMessage(f'Time remaining: {currentTimerString}')
-    for n in originalTime:
+    timerMessage = await globalMessage(f'Time remaining: {currentTimerString}')
+    await leaderPlayer.playerChannel.send(await playerListMessage())
+    for n in range(originalTime):
         if len(playersNominated) < challangeSize[round]:
             await asyncio.sleep(1)
-            currentTimer =-1
+            currentTimer -=1
             currentTimerString = f'{math.floor(currentTimer/60)}:{currentTimer%60}'
             for m in timerMessage:
-                if playersNominated>0:
-                    m.edit(content = f'Time Remaining: {currentTimerString}\n The current nominees are: {playersNominated[0:-1].user.name}')
+                if len(playersNominated)>0:
+                    nomineesString = ''
+                    for pl in playersNominated:
+                        nomineesString += f'{pl.user.name}\n'
+                    await m.edit(content = f'Time Remaining: {currentTimerString}\nThe current nominees are: {nomineesString}')
                 else:
-                    m.edit(content = f'Time Remaining: {currentTimerString}\n There are currently no nominated players')
+                    await m.edit(content = f'Time Remaining: {currentTimerString}\nThere are currently no nominated players')
             if playersNominated == challangeSize:
-                m.delete()
-                globalMessage('The nominees have been decided.')
+                await m.delete()
+                await globalMessage('The nominees have been decided.')
                 break
 
 #Function to change round
@@ -155,29 +173,31 @@ async def nextRound():
 
 #Function to switch gamestatef
 async def switchGameState(stateToSwitchTo):
+    global gameState
     gameState = stateToSwitchTo
 
     #Party pick phase
     if gameState == 1:
         print('switched to game state 1')
+        gameState = 1
+        global firstRoundIsOver
         if firstRoundIsOver == False:
-            globalMessage('Welcome to HRProject, the game will now begin')
+            await globalMessage('Welcome to HRProject, the game will now begin')
             #TO-DO add prompt for rules and instructions here
             #TO-DO add the role introduction here
-            globalMessage(f"For the first round, you will have {roundTime[0]} minutes to decide the party.\n If the current leader doesn't decide within the time alloted, the role of leader will be appointed to someone else\n The time begins now")
-            #TO-DO add way to show the timer
+            await globalMessage(f"For the first round, you will have {roundTime[0]} minutes to decide the party.\nIf the current leader doesn't decide within the time alloted, the role of leader will be appointed to someone else\nThe time begins now")
             firstRoundIsOver = True
 
-        globalMessage(f'The current leader is {leader.user.name}, to nominate players, type "nominate a b c",where a b and c are the numbers of the players you wish to nominate\n The leader must nominate {challangeSize[round]} players')
-        setRoundTimer(currentRound)
-        startVote()
+        await globalMessage(f'The current leader is {leaderPlayer.user.mention}, to nominate players, type "nominate a b c",where a b and c are the numbers of the players you wish to nominate\nThe leader must nominate {challangeSize[currentRound]} players')
+        await setRoundTimer(currentRound)
+        await startVote()
 
     #Challange room phase
     if gameState ==2:
-        globalMessage('The selected party will now be sent to the challange room')
-        challangeTransfer()
+        await globalMessage('The selected party will now be sent to the challange room')
+        await challangeTransfer()
         #TO-DO send challange
-        nextRound()
+        await nextRound()
 
 #### COMMANDS ####
 @client.event
@@ -185,23 +205,32 @@ async def on_ready():
     print('Bot is ready.')
 
 #Voting command
-@client.command(aliases = ['Vote'.lower])
-async def vote(ctx, desicion):
+@client.command(aliases = ['Vote'.lower()])
+async def vOte(ctx, desicion):
+    global playersWhoVoted, noVotes, yesVotes
+    yes = 'yes'
+    no = 'no'
     if votingOpen == True and ctx.message.author not in playersWhoVoted:
-        message = ctx.message.content
-        if 'yes'.lower in message and 'no'.lower not in message:
+        message = ctx.message.content.lower()
+        if yes in message:
             yesVotes +=1
-        elif 'no'.lower in message and 'yes'.lower not in message:
+            print(ctx.message.content)
+        elif no in message:
             noVotes =+1
-        playersWhoVotes.append(ctx.message.author)
+            print(ctx.message.content)
+        playersWhoVoted.append(ctx.message.author)
 
 #Nominate players
-@client.event(aliases = ['nominate'.lower])
-async def nominate(ctx, *nominees):
-    if leader in ctx.message.author.roles and gameState == 1 and len(playersNominated) < challangeSize[currentRound]:
+@client.command(aliases = ['nominate'.lower()])
+async def nOminate(ctx):
+    if leaderRole in ctx.message.author.roles and gameState == 1 and len(playersNominated) < challangeSize[currentRound]:
+        nominees = ctx.message.content
         nomList = nominees.split(' ')
+        nomList.remove(nomList[0])
+        print(nomList[0])
         for n in nomList:
-            if n >0 and n < len(playerClassList):
+            n = int(n)
+            if n >0 and n <= len(playerClassList):
                 playersNominated.append(playerClassList[n-1])
 
 #List the current players
@@ -325,9 +354,12 @@ async def startGame(ctx):
             await pl.move_to(gameVoiceChannel)
 
         #Create leader role and assign it to a random player
-        leader = await ctx.guild.create_role(name = 'Leader', hoist = False)
-        await random.choice(playerClassList).user.add_roles(leader)
-        rolesCreated.append(leader)
+        global leaderRole
+        global leaderPlayer
+        leaderRole = await ctx.guild.create_role(name = 'Leader', hoist = False)
+        leaderPlayer = random.choice(playerClassList)
+        await leaderPlayer.user.add_roles(leaderRole)
+        rolesCreated.append(leaderRole)
 
         gameIsRunning = True
         await switchGameState(1)
