@@ -204,27 +204,26 @@ async def scoreboard():
 #Function to end the game
 async def killGame():
     global gameIsRunning
-    if gameIsRunning and ctx.message.channel == serverLobbyTextChannel:
-        #delte created roles
-        for rl in rolesCreated:
-            await rl.delete()
+    #delte created roles
+    for rl in rolesCreated:
+        await rl.delete()
         print('roles deleted')
-        gameIsRunning = False
+    gameIsRunning = False
 
-        #Move players back to original voice chat
-        global currentPlayerList
-        for pl in currentPlayerList:
-            await pl.move_to(serverLobbyVoiceChannel)
-        #Wipe player list
-        currentPlayerList = []
-        print('playerlist deleted')
-        #Delete created channels
-        global channelsCreated
-        for ch in channelsCreated:
-            await ch.delete()
-        print('channels deleted')
+    #Move players back to original voice chat
+    global currentPlayerList
+    for pl in currentPlayerList:
+        await pl.move_to(serverLobbyVoiceChannel)
+    #Wipe player list
+    currentPlayerList = []
+    print('playerlist deleted')
+    #Delete created channels
+    global channelsCreated
+    for ch in channelsCreated:
+        await ch.delete()
+    print('channels deleted')
 
-        await ctx.send('Game has been forced to end')
+    await ctx.send('Game has been forced to end')
 
 #Check for victory
 async def victoryCheck():
@@ -374,7 +373,8 @@ async def clearLobby(ctx):
 #Forcefully end the game
 @client.command(aliases = ['killGame'])
 async def endTheGame(ctx):
-    await killGame()
+    if gameIsRunning and ctx.message.channel == serverLobbyTextChannel:
+        await killGame()
 
 #Game Setup
 @client.command(aliases = ['gameStart'])
