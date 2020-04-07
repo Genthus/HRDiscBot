@@ -456,6 +456,11 @@ async def prepareServer(ctx):
     await ctx.guild.create_voice_channel(name = 'Voice Lobby', category = createdCategory, position = 1)
     print('Voice lobby created')
 
+#Contact command
+@client.command()
+async def contact(ctx):
+    await ctx.send('email: genthus0@gmail.com')
+
 
 
 
