@@ -10,6 +10,10 @@ gameChallangeRoom = None
 
 gameIsRunning = False
 firstRoundIsOver = False
+
+challangeSize = [2,3,3,4,4,5,4]
+
+currentRound = 0
 roundTime = [3,4,5,5,6,6,6]
 currentTimer = 0
 currentTimerString = ''
@@ -21,12 +25,13 @@ playersWhoVoted = []
 
 currentPlayerList = []
 playerClassList = []
-rolesCreated = []
-channelsCreated = []
+leader = None
 gameState = None
 playersToBeChallanged = []
 playersNominated = []
-leader = None
+
+rolesCreated = []
+channelsCreated = []
 
 
 
@@ -43,37 +48,21 @@ class Player:
         self.discordRole = dR
         self.playerChannel = pC
 
-#Function to switch gamestatef
-async def switchGameState(stateToSwitchTo):
-    gameState = stateToSwitchTo
-
-    #Party pick phase
-    if gameState == 1:
-        if firstRoundIsOver == False:
-            globalMessage('Welcome to HRProject, the game will now begin')
-            #TO-DO add prompt for rules and instructions here
-            #TO-DO add the role introduction here
-            globalMessage(f"For the first round, you will have {roundTime[0]} minutes to decide the party.\n If the current leader doesn't decide within the time alloted, the role of leader will be appointed to someone else\n The time begins now")
-            #TO-DO add way to show the timer
-            
-    #Challange room phase
-    if gameState ==2:
-        globalMessage('The selected party will now be sent to the challange room')
-        for pl in playersToBeChallanged:
-            await pl.move_to(gameChallangeRoom)
-            personalMessage(pl, 'You are now in the challange room, prepare yourselves')
-        
 
 ####      Functions     ####
 
 #Send message to all player dashboards
 async def globalMessage(message):
+    messageList = []
     for pl in playerClassList:
-        await pl.playerChannel.send(message)
+        x = await pl.playerChannel.send(message)
+        messageList.append(x)
+    return messageList
 
 #Send message to a player dashboard
 async def personalMessage(playerClass, message):
-    await playerClass.playerChannel.send(message)
+    messageSent = await playerClass.playerChannel.send(message)
+    return messageSent
 
 #Challange room transfer
 async def challangeTransfer():
@@ -81,6 +70,7 @@ async def challangeTransfer():
     playersNominated = []
     for pl in playersToBeChallanged:
         playersToBeChallanged.user.move_to(gameChallangeRoom)
+        personalMessage(pl, 'You are now in the challange room, prepare yourselves')
 
 #Mute everyone in a voice channel
 async def muteVoiceChannel(channelToMute):
@@ -125,10 +115,11 @@ async def startVote():
     if yesVotes > noVotes:
         globalMessage('The vote has passed\n In 15 seconds the players will be sent to the challange room.')
         await asyncio.sleep(15)
-        challangeTransfer()
+        switchGameState(2)
     else:
         globalMessage("The vote didn't pass, leadership will be transfered and the nomination process will begin again.")
         #TO-DO restart party making round
+        switchGameState(1)
 
     switchLeader()
     playersNominated = []
@@ -138,21 +129,54 @@ async def startVote():
     noVotes = 0
 
 #Setup the round timer
-async def setRoundTimer(time, round):
-    currentTimer = t*60
-    originalTime = t*60
+async def setRoundTimer(round):
+    currentTimer = rounTime[round]*60
+    originalTime = currentTimer
+    timerMessage = globalMessage(f'Time remaining: {currentTimerString}')
     for n in originalTime:
-        if len(playersNominated) < roundPartySize[r]:
+        if len(playersNominated) < challangeSize[round]:
             await asyncio.sleep(1)
             currentTimer =-1
             currentTimerString = f'{math.floor(currentTimer/60)}:{currentTimer%60}'
-            
+            for m in timerMessage:
+                if playersNominated>0:
+                    m.edit(content = f'Time Remaining: {currentTimerString}\n The current nominees are: {playersNominated[0:-1].user.name}')
+                else:
+                    m.edit(content = f'Time Remaining: {currentTimerString}\n There are currently no nominated players')
+            if playersNominated == challangeSize:
+                m.delete()
+                globalMessage('The nominees have been decided.')
+                break
 
+#Function to switch gamestatef
+async def switchGameState(stateToSwitchTo):
+    gameState = stateToSwitchTo
 
+    #Party pick phase
+    if gameState == 1:
+        if firstRoundIsOver == False:
+            globalMessage('Welcome to HRProject, the game will now begin')
+            #TO-DO add prompt for rules and instructions here
+            #TO-DO add the role introduction here
+            globalMessage(f"For the first round, you will have {roundTime[0]} minutes to decide the party.\n If the current leader doesn't decide within the time alloted, the role of leader will be appointed to someone else\n The time begins now")
+            #TO-DO add way to show the timer
+            firstRoundIsOver = True
+
+        globalMessage(f'The current leader is {leader.user.name}, to nominate players, type "nominate a b c",where a b and c are the numbers of the players you wish to nominate\n The leader must nominate {challangeSize[round]} players')
+        setRoundTimer(currentRound)
+
+    #Challange room phase
+    if gameState ==2:
+        globalMessage('The selected party will now be sent to the challange room')
+        challangeTransfer()
+        #TO-DO send challange
+
+#### COMMANDS ####
 @client.event
 async def on_ready():
     print('Bot is ready.')
 
+#Voting command
 @client.event(aliases = ['Vote'])
 async def vote(ctx, desicion):
     if votingOpen == True and ctx.message.author not in playersWhoVoted:
@@ -162,6 +186,15 @@ async def vote(ctx, desicion):
         elif 'no'.lower in message and 'yes'.lower not in message:
             noVotes =+1
         playersWhoVotes.append(ctx.message.author)
+
+#Nominate players
+@client.event(aliases = ['nominate'.lower])
+async def nominate(ctx, *nominees):
+    if leader in ctx.message.author.roles and gameState == 1 and len(playersNominated) < challangeSize[currentRound]:
+        nomList = nominees.split(' ')
+        for n in nomList:
+            if n >0 and n < len(playerClassList):
+                playersNominated.append(playerClassList[n-1])
 
 #List the current players
 @client.command(aliases = ['player list', 'listplayers', 'players'])
