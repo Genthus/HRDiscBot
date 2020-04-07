@@ -148,6 +148,11 @@ async def setRoundTimer(round):
                 globalMessage('The nominees have been decided.')
                 break
 
+#Function to change round
+async def nextRound():
+    round+=1
+    switchGameState(1)
+
 #Function to switch gamestatef
 async def switchGameState(stateToSwitchTo):
     gameState = stateToSwitchTo
@@ -171,6 +176,7 @@ async def switchGameState(stateToSwitchTo):
         globalMessage('The selected party will now be sent to the challange room')
         challangeTransfer()
         #TO-DO send challange
+        nextRound()
 
 #### COMMANDS ####
 @client.event
