@@ -13,6 +13,9 @@ firstRoundIsOver = False
 
 challangeSize = [1,3,3,4,4,5,4]
 
+villageTeamWins = 0
+werewolfTeamWins = 0
+
 currentRound = 0
 roundTime = [3,4,5,5,6,6,6]
 currentTimer = 0
@@ -117,8 +120,18 @@ async def startVote():
     await globalMessage('The voting proccess is now open, type "vote yes" or "vote no"\nThe nominated party is:')
     for pl in playersNominated:
         await globalMessage(f'{pl.user.name}')
+    """
     await globalMessage('You have 15 seconds to vote.')
     await asyncio.sleep(15)
+    """
+    voteTimer = 15
+    voteTimerRange = range(voteTimer)
+    voteTimerMessage = await globalMessage(f'You have {voteTimer} seconds to vote')
+    for t in voteTimerRange:
+        await asyncio.sleep(1)
+        voteTimer -=1
+        for ch in voteTimerMessage:
+            await ch.edit(content = f'You have {voteTimer} seconds to vote')
     if yesVotes > noVotes:
         await globalMessage(f'The vote has passed with {yesVotes} yes votes against {noVotes}\nIn 15 seconds the players will be sent to the challange room.')
         await asyncio.sleep(15)
@@ -128,7 +141,7 @@ async def startVote():
         votingOpen = False
         yesVotes = 0
         noVotes = 0
-        await switchGameState(2)
+        return 1
     else:
         await globalMessage("The vote didn't pass, leadership will be transfered and the nomination process will begin again.")
         #TO-DO restart party making round
@@ -138,7 +151,7 @@ async def startVote():
         votingOpen = False
         yesVotes = 0
         noVotes = 0
-        await switchGameState(1)
+        return 0
 
 
 #Setup the round timer
@@ -150,9 +163,9 @@ async def setRoundTimer(round):
     await leaderPlayer.playerChannel.send(await playerListMessage())
     for n in range(originalTime):
         if len(playersNominated) < challangeSize[round]:
-            await asyncio.sleep(1)
             currentTimer -=1
             currentTimerString = f'{math.floor(currentTimer/60)}:{currentTimer%60}'
+            await asyncio.sleep(1)
             for m in timerMessage:
                 if len(playersNominated)>0:
                     nomineesString = ''
@@ -166,12 +179,97 @@ async def setRoundTimer(round):
                 await globalMessage('The nominees have been decided.')
                 break
 
-#Function to change round
-async def nextRound():
-    round+=1
-    switchGameState(1)
+#Retry state 1
+async def retryPartySelect():
+    global votesFailed
+    a0 = await switchGameState(1)
+    if a0 == 'voteFailed':
+        a1 = await switchGameState(1)
+        if a1 == 'voteFailed':
+            a2 = await switchGameState(1)
+            if a2 == 'voteFailed':
+                a3 = await switchGameState(1)
+                if a3 == 'voteFailed':
+                    a4 = await switchGameState(1)
+                    if a4 == 'voteFailed':
+                        print('failed to choose party 5 times')
+                        return 'voteFailed'
+    else: return 'votePassed'
 
-#Function to switch gamestatef
+#Announce score
+async def scoreboard():
+    global villageTeamWins, werewolfTeamWins
+    await globalMessage(f'The current score is\nVillage: {villageTeamWins}\nWerewolves: {werewolfTeamWins}')
+
+#Function to end the game
+async def killGame():
+    global gameIsRunning
+    if gameIsRunning and ctx.message.channel == serverLobbyTextChannel:
+        #delte created roles
+        for rl in rolesCreated:
+            await rl.delete()
+        print('roles deleted')
+        gameIsRunning = False
+
+        #Move players back to original voice chat
+        global currentPlayerList
+        for pl in currentPlayerList:
+            await pl.move_to(serverLobbyVoiceChannel)
+        #Wipe player list
+        currentPlayerList = []
+        print('playerlist deleted')
+        #Delete created channels
+        global channelsCreated
+        for ch in channelsCreated:
+            await ch.delete()
+        print('channels deleted')
+
+        await ctx.send('Game has been forced to end')
+
+#Check for victory
+async def victoryCheck():
+    global villageTeamWins, werewolfTeamWins
+    if villageTeamWins >= 4:
+        print('village team won')
+        await globalMessage('The village team has won the game!\nThe game will close in 30 seconds')
+        return 'end'
+
+    elif werewolfTeamWins >= 4:
+        print('werewolf team won')
+        await globalMessage('The werewolf team has won the game!\nThe game will close in 30 seconds')
+        return 'end'
+
+#Whole 7 round game function
+async def gameFlow():
+    global currentRound, villageTeamWins, werewolfTeamWins, votesFailed
+    #Round 1:4
+    for r in range(3):
+        r1 = await retryPartySelect()
+        if r1 == 'voteFailed':
+            await globalMessage('Since no party was selected for 5 consecutive votes, the game is over and will be forced to end')
+            await asyncio.sleep(30)
+            await killGame()
+        else:
+            await switchGameState(2)
+            await scoreboard()
+    #rounds 5:7
+    for r in range(2):
+        r1 = await retryPartySelect()
+        if r1 == 'voteFailed':
+            await globalMessage('Since no party was selected for 5 consecutive votes, the game is over and will be forced to end')
+            await asyncio.sleep(30)
+            await killGame()
+        else:
+            await switchGameState(2)
+            await scoreboard()
+            if await victoryCheck() == 'end':
+                await asyncio.sleep(30)
+                await killGame()
+            else:
+                print('something went wrong, killing game')
+                await killGame()
+
+#Function to switch gamestate
 async def switchGameState(stateToSwitchTo):
     global gameState
     gameState = stateToSwitchTo
@@ -190,14 +288,20 @@ async def switchGameState(stateToSwitchTo):
 
         await globalMessage(f'The current leader is {leaderPlayer.user.mention}, to nominate players, type "nominate a b c",where a b and c are the numbers of the players you wish to nominate\nThe leader must nominate {challangeSize[currentRound]} players')
         await setRoundTimer(currentRound)
-        await startVote()
+        result = await startVote()
+        if result == 1: return 'votePassed'
+        elif result == 0: return 'voteFailed'
 
     #Challange room phase
     if gameState ==2:
+        global villageTeamWins, werewolfTeamWins
         await globalMessage('The selected party will now be sent to the challange room')
         await challangeTransfer()
         #TO-DO send challange
-        await nextRound()
+        #Village win
+        villageTeamWins += 1
+        #Werewolf win
+        werewolfTeamWins += 1
 
 #### COMMANDS ####
 @client.event
@@ -270,29 +374,7 @@ async def clearLobby(ctx):
 #Forcefully end the game
 @client.command(aliases = ['killGame'])
 async def endTheGame(ctx):
-    global gameIsRunning
-    if gameIsRunning and ctx.message.channel == serverLobbyTextChannel:
-        #delte created roles
-        for rl in rolesCreated:
-            await rl.delete()
-        print('roles deleted')
-        gameIsRunning = False
-
-        #Move players back to original voice chat
-        global currentPlayerList
-        for pl in currentPlayerList:
-            await pl.move_to(serverLobbyVoiceChannel)
-        #Wipe player list
-        currentPlayerList = []
-        print('playerlist deleted')
-        #Delete created channels
-        global channelsCreated
-        for ch in channelsCreated:
-            await ch.delete()
-        print('channels deleted')
-
-        await ctx.send('Game has been forced to end')
-
+    await killGame()
 
 #Game Setup
 @client.command(aliases = ['gameStart'])
@@ -362,7 +444,7 @@ async def startGame(ctx):
         rolesCreated.append(leaderRole)
 
         gameIsRunning = True
-        await switchGameState(1)
+        await gameFlow()
 
 #Server Setup Command
 @client.command(aliases = ['serverSetup' , 'setupServer'])
