@@ -159,6 +159,7 @@ async def switchGameState(stateToSwitchTo):
 
     #Party pick phase
     if gameState == 1:
+        print('switched to game state 1')
         if firstRoundIsOver == False:
             globalMessage('Welcome to HRProject, the game will now begin')
             #TO-DO add prompt for rules and instructions here
@@ -184,7 +185,7 @@ async def on_ready():
     print('Bot is ready.')
 
 #Voting command
-@client.event(aliases = ['Vote'])
+@client.command(aliases = ['Vote'.lower])
 async def vote(ctx, desicion):
     if votingOpen == True and ctx.message.author not in playersWhoVoted:
         message = ctx.message.content
@@ -329,7 +330,7 @@ async def startGame(ctx):
         rolesCreated.append(leader)
 
         gameIsRunning = True
-        switchGameState(1)
+        await switchGameState(1)
 
 #Server Setup Command
 @client.command(aliases = ['serverSetup' , 'setupServer'])
