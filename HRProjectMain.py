@@ -113,7 +113,7 @@ async def startVote():
     globalMessage('You have 15 seconds to vote.')
     await asyncio.sleep(15)
     if yesVotes > noVotes:
-        globalMessage('The vote has passed\n In 15 seconds the players will be sent to the challange room.')
+        globalMessage(f'The vote has passed with {yesVotes} yes votes against {noVotes}\n In 15 seconds the players will be sent to the challange room.')
         await asyncio.sleep(15)
         switchGameState(2)
     else:
@@ -164,6 +164,7 @@ async def switchGameState(stateToSwitchTo):
 
         globalMessage(f'The current leader is {leader.user.name}, to nominate players, type "nominate a b c",where a b and c are the numbers of the players you wish to nominate\n The leader must nominate {challangeSize[round]} players')
         setRoundTimer(currentRound)
+        startVote()
 
     #Challange room phase
     if gameState ==2:
