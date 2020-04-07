@@ -1,6 +1,7 @@
 import discord
 from discord.ext import commands
 import random, math, asyncio
+import roles
 
 client = commands.Bot(command_prefix = '')
 
