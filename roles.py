@@ -1,13 +1,5 @@
 import random, math
 
-#Send message to all player dashboards
-async def globalMessage(message):
-    messageList = []
-    for pl in playerClassList:
-        x = await pl.playerChannel.send(message)
-        messageList.append(x)
-    return messageList
-
 #Send message to a player dashboard
 async def personalMessage(playerClass, message):
     messageSent = await playerClass.playerChannel.send(message)
