@@ -1,8 +1,0 @@
-.gitignore
-#ignore bot key
-botKey.py
-*.odt#
-*.odt
-notes.*
-runBot.*
-__pycache__/
