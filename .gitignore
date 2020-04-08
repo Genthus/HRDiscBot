@@ -1,3 +1,4 @@
+.gitattributes
 .gitignore
 #ignore bot key
 botKey.py
