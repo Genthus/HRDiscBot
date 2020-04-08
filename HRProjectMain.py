@@ -373,11 +373,12 @@ async def nOminate(ctx):
                 if n >0 and n <= len(playerClassList):
                     playersNominated.append(playerClassList[n-1])
             #Picking from name
-            for pl in playerClassList:
-                n = n.lower()
-                name = pl.user.name.lower()
-                if n == name:
-                    playersNominated.append(pl)
+            if n != int:
+                for pl in playerClassList:
+                    n = n.lower()
+                    name = pl.user.name.lower()
+                    if n == name:
+                        playersNominated.append(pl)
 
 #List the current players
 @client.command(aliases = ['player list', 'listplayers', 'players'])
@@ -389,7 +390,7 @@ async def playerList(ctx):
     else: await ctx.send('There are no players in the lobby')
 
 #Join lobby command
-@client.command(aliases = ['join', 'Join', 'joingame', 'joinGame'])
+@client.command(aliases = ['join', 'Join', 'joingame'])
 async def joinGame(ctx):
     if gameIsRunning == False:
         coincidenceCount = 0
