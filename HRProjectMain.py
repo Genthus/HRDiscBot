@@ -1,7 +1,6 @@
 import discord
 from discord.ext import commands
-import random, math, asyncio
-import roles
+import random, math, asyncio, roles, botKey
 
 client = commands.Bot(command_prefix = '')
 
@@ -495,4 +494,4 @@ async def contact(ctx):
 
 
 
-client.run('Njk1NDQ4MDUxNjkwNTA0MzEz.XoaWhA.BHmnknfL3de6pUs57PEr2M0W_Qs')
+client.run(botKey.key)
