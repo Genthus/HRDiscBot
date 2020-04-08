@@ -8,6 +8,7 @@ client = commands.Bot(command_prefix = '')
 serverLobbyTextChannel = None
 serverLobbyVoiceChannel = None
 gameChallangeRoom = None
+gameVoiceChannel = None
 
 gameIsRunning = False
 firstRoundIsOver = False
@@ -74,12 +75,20 @@ async def personalMessage(playerClass, message):
 
 #Challange room transfer
 async def challangeTransfer():
-    global playersNominated
+    global playersNominated, playersToBeChallanged
     playersToBeChallanged = playersNominated
     playersNominated = []
     for pl in playersToBeChallanged:
-        await playersToBeChallanged.user.move_to(gameChallangeRoom)
+        await pl.user.move_to(gameChallangeRoom)
         await personalMessage(pl, 'You are now in the challange room, prepare yourselves')
+
+#Return challangers to main
+async def challangeReturn():
+    global playersToBeChallanged
+    for pl in playersToBeChallanged:
+        await pl.user.move_to(gameVoiceChannel)
+        await personalMessage(pl, 'You are now back in the main voice channel')
+    playersToBeChallanged = []
 
 #Mute everyone in a voice channel
 async def muteVoiceChannel(channelToMute):
@@ -152,7 +161,6 @@ async def startVote():
         await globalMessage(f'The vote has passed with {yesVotes} yes votes against {noVotes}\nIn 15 seconds the players will be sent to the challange room.')
         await asyncio.sleep(15)
         await switchLeader()
-        playersNominated = []
         playersWhoVoted = []
         votingOpen = False
         yesVotes = 0
@@ -176,7 +184,7 @@ async def setRoundTimer(round):
     currentTimer = roundTime[round]*60
     originalTime = currentTimer
     timerMessage = await globalMessage(f'Time remaining: {currentTimerString}')
-    await leaderPlayer.playerChannel.send(await playerListMessage())
+    await leaderPlayer.playerChannel.send(f'\nThese are the available players\n{await playerListMessage()}')
     for n in range(originalTime):
         if len(playersNominated) < challangeSize[round]:
             currentTimer -=1
@@ -268,6 +276,7 @@ async def gameFlow():
         else:
             await switchGameState(2)
             await scoreboard()
+            currentRound += 1
     #rounds 5:7
     for r in range(2):
         r1 = await retryPartySelect()
@@ -281,9 +290,7 @@ async def gameFlow():
             if await victoryCheck() == 'end':
                 await asyncio.sleep(30)
                 await killGame()
-            else:
-                print('something went wrong, killing game')
-                await killGame()
+            currentRound += 1
 
 #Function to switch gamestate
 async def switchGameState(stateToSwitchTo):
@@ -314,6 +321,11 @@ async def switchGameState(stateToSwitchTo):
         await globalMessage('The selected party will now be sent to the challange room')
         await challangeTransfer()
         #TO-DO send challange
+        for pl in playerClassList:
+            if pl not in playersToBeChallanged:
+                pl.gameRole.addCharge()
+                personalMessage(pl, "Your ability has recieved charge")
+        await challangeReturn()
         #Village win
         villageTeamWins += 1
         #Werewolf win
@@ -401,6 +413,7 @@ async def startGame(ctx):
     if not gameIsRunning:
 
         #Create game channels
+        global gameVoiceChannel, gameChallangeRoom
         gameCategory = discord.utils.get(ctx.guild.categories, name = 'HRProject')
         gameVoiceChannel = await gameCategory.create_voice_channel(name = 'Game VC', position = 0, user_limit = len(currentPlayerList))
         channelsCreated.append(gameVoiceChannel)

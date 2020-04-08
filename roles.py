@@ -36,9 +36,9 @@ class gameRole:
     chargeNeeded = 1
     abilityDescription = ''
 
-    async def addCharge():
-        global charge
-        charge += chargePerRound
+    async def addCharge(self):
+        if self.charge < self.chargeNeeded:
+            self.charge += self.chargePerRound
 
 class Hacker(gameRole):
     name = 'Hacker'
