@@ -5,10 +5,10 @@ This is a personal project, the original intent was to adapt Ultimate Werewolf (
 
 The game is played over discord, you could make the bot and add it to your server but I would recommend to create a new server and add it to that one instead, just in case.
 
-##Current functionality
+### Current functionality
 
 Running a semi-complete game in a single server.
 
-##Planned functionality
+### Planned functionality
 
 More player roles, new challenges, being able to run multiple games in a single server, saving stats, new role selecting algorithm.
