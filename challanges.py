@@ -1,4 +1,3 @@
-import random
 import random, asyncio, math
 
 #Challange dictionary
