@@ -1,16 +1,26 @@
-import random
+import random, math
 
-rolesDict = {
-    Hacker:-3,
-    DeskWorker:1
-}
-#Ability function library
-async def revealHackers():
-    message = 'The hacker team is:\n'
+#Send message to all player dashboards
+async def globalMessage(message):
+    messageList = []
     for pl in playerClassList:
+        x = await pl.playerChannel.send(message)
+        messageList.append(x)
+    return messageList
+
+#Send message to a player dashboard
+async def personalMessage(playerClass, message):
+    messageSent = await playerClass.playerChannel.send(message)
+    return messageSent
+#Roles dictionary
+
+#Ability function library
+async def revealHackers(user, playerClasses):
+    message = 'The hacker team is:\n'
+    for pl in playerClasses:
         if pl.gameRole.team == 'hackers':
             message += f'{pl.user.name}\n'
-    await personalMessage(playerClass, message)
+    await personalMessage(user, message)
 
 #Base game role class
 class gameRole:
@@ -24,22 +34,11 @@ class gameRole:
     charge = 0
     chargePerRound = 0
     chargeNeeded = 1
+    abilityDescription = ''
 
-    def addCharge():
+    async def addCharge():
         global charge
         charge += chargePerRound
-
-    def __init__(self, pC):
-        self.playerClass = pC
-
-#Game role subclass template
-class vvv(gameRole):
-    name = vvv
-    team = vvv
-    description = vvv
-    winCondition = None
-    async def ability():
-        #This is the ability
 
 class Hacker(gameRole):
     name = 'Hacker'
@@ -49,11 +48,10 @@ class Hacker(gameRole):
     balanceScore = -3
     charge = 1
     chargePerRound =  0
-    async def ability():
-        global charge
-        if charge >= chargeNeeded:
-            charge -= chargeNeeded
-            await revealHackers()
+    async def ability(self, players, user):
+        if self.charge>= self.chargeNeeded:
+            self.charge -= self.chargeNeeded
+            await revealHackers(user, players)
 
 class DeskWorker(gameRole):
     name = 'Desk Worker'
@@ -61,4 +59,26 @@ class DeskWorker(gameRole):
     description = 'You are a run off the mill desk worker, no special powers.'
     winCondition = 'You and the Cyber Police win if 4 challanges succeed'
     balanceScore = 1
-    async def ability():
+
+#Role setting algorithms
+async def basic(playerClasses):
+    if len(playerClasses)>2:
+        hackerCount = math.floor(len(playerClasses)/3)
+    else:
+        hackerCount = 1
+    print(f'set to have {hackerCount} hackers')
+    playersWithoutRole = range(len(playerClasses))
+    playersWithRole =[]
+    #Set hackers
+    for h in range(hackerCount):
+        c = random.choice(playersWithoutRole)
+        playersWithRole.append(c)
+        playerClasses[c].gameRole = Hacker()
+        print(f'set {playerClasses[c].user.name} as {playerClasses[c].gameRole.name}')
+    #Set everyone else as desk workers
+    for pl in playersWithoutRole:
+        if pl in playersWithRole:
+            continue
+        else:
+            playerClasses[pl].gameRole = DeskWorker()
+            print(f'set {playerClasses[pl].user.name} as {playerClasses[pl].gameRole.name}')

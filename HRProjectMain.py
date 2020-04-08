@@ -35,6 +35,9 @@ gameState = None
 playersToBeChallanged = []
 playersNominated = []
 
+#Role settings
+roleSetMode = 'basic'
+
 rolesCreated = []
 channelsCreated = []
 
@@ -95,6 +98,18 @@ async def playerListMessage():
         n=+1
     return(message)
 
+#Set gameRoles
+async def setGameRoles(playerClasses):
+    modes = {
+        'basic' : roles.basic
+    }
+    global playerClassList
+    await modes.get(roleSetMode, 'basic')(playerClasses)
+    for pl in playerClassList:
+        await personalMessage(pl, f'Your role is {pl.gameRole.name}\nYou are part of the {pl.gameRole.team} team\n{pl.gameRole.description}\n{pl.gameRole.winCondition}\n{pl.gameRole.abilityDescription}')
+        if pl.gameRole.name == 'Hacker':
+            await pl.gameRole.ability(playerClassList, pl)
+
 #Switch leader role
 async def switchLeader():
     if len(leaderRole.members) > 0:
@@ -106,7 +121,7 @@ async def switchLeader():
         #This cycles in the order they joined the lobby
         for pl in playerClassList:
             if leaderFound == True:
-                await pl.user.give_role(leaderRole)
+                await pl.user.add_role(leaderRole)
                 leaderPlayer = pl
             if pl == currentLeader:
                 leaderFound = True
@@ -224,8 +239,6 @@ async def killGame():
         await ch.delete()
     print('channels deleted')
 
-    await ctx.send('Game has been forced to end')
-
 #Check for victory
 async def victoryCheck():
     global villageTeamWins, werewolfTeamWins
@@ -242,6 +255,9 @@ async def victoryCheck():
 #Whole 7 round game function
 async def gameFlow():
     global currentRound, villageTeamWins, werewolfTeamWins, votesFailed
+    #Give roles
+    await setGameRoles(playerClassList)
+    await asyncio.sleep(15)
     #Round 1:4
     for r in range(3):
         r1 = await retryPartySelect()
@@ -376,6 +392,7 @@ async def clearLobby(ctx):
 async def endTheGame(ctx):
     if gameIsRunning and ctx.message.channel == serverLobbyTextChannel:
         await killGame()
+        await ctx.send('Game has been forced to end')
 
 #Game Setup
 @client.command(aliases = ['gameStart'])
@@ -414,10 +431,9 @@ async def startGame(ctx):
 
             #Create instances of players with user, role, and game role
             playerClassList.append(Player(pl, role, playerChannel))
-
+            await globalMessage(f'Welcome to your dashboard {pl.mention}')
             n+=1
 
-        await globalMessage(f'Welcome to your dashboard {pl.mention}')
 
         await ctx.send('Roles have been set!')
 
