@@ -91,11 +91,11 @@ async def challangeReturn():
 
 #Mute everyone in a voice channel
 async def muteVoiceChannel(channelToMute):
-    await channelToMute.set_permissions(default_member, speak = False)
+    await channelToMute.set_permissions(default_role, speak = False)
 
 #Unmute everyone in a voice channel
 async def unmuteVoiceChannel(channelToMute):
-    await channelToMute.set_permissions(default_member, speak = True)
+    await channelToMute.set_permissions(default_role, speak = True)
 
 #Returns list of current players as a message
 async def playerListMessage():
