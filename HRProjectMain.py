@@ -1,6 +1,6 @@
 import discord
 from discord.ext import commands
-import random, math, asyncio, roles, botKey
+import random, math, asyncio, roles, botKey, challanges
 
 client = commands.Bot(command_prefix = '')
 
@@ -446,9 +446,7 @@ async def startGame(ctx):
             await globalMessage(f'Welcome to your dashboard {pl.mention}')
             n+=1
 
-
         await ctx.send('Roles have been set!')
-
 
         #Save player 0's voice channel as lobby
         global serverLobbyVoiceChannel
