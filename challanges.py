@@ -1,9 +1,5 @@
 import random, asyncio, math
 
-#Challange dictionary
-challangeDict = {
-    'letters' : PickLetters
-}
 
 answers = {}
 
@@ -17,17 +13,17 @@ class Challange():
         self.challangerList = plc
         self.numberOfChallangers = len(plc)
 
-    async def challangeMessage(self, message):
+    async def challangeMessage(self, players, message):
         messageList = []
-        for pl in self.challangerList:
+        for pl in players:
             x = await pl.playerChannel.send(message)
             messageList.append(x)
         return messageList
 
-    async def startTimer(self):
+    async def startTimer(self, players):
         timer = self.timer
         timerRange = range(timer)
-        timerMessage = await challangeMessage(f'You have {timer} seconds')
+        timerMessage = await self.challangeMessage(players, f'You have {timer} seconds')
         for t in timerRange:
             await asyncio.sleep(1)
             timer-=1
@@ -37,32 +33,36 @@ class Challange():
     async def condition():
         return 'success'
 
-    async def startChallange(self):
-        await challangeTask()
-        challangeMessage(self.description)
-        await startTimer
-        global answers
-        result = condition(answers)
-        answers = {}
-        return self.result
-
-
-
-
 class PickLetters(Challange):
+    letterList = []
 
-    async def challangeTask(self):
-        letterList = 'abcdefghijklmnopqrstuvwxyz'.split('')
-        print(letterList)
+    async def challangeTask(self, players):
+        letterList = 'a b c d e f g h i j k l m n o p q r s t u v w x y z'.split(' ')
         correctAnswers = {}
-        for pl in challangerList:
-            letterList = letterList[0:numberOfChallangers]
+        for pl in players:
+            self.letterList = letterList[0:len(players)]
+        print(self.letterList)
 
-    description = f'There are {numberOfChallangers} letters, each of you must pick a different letter to succeed the challange.\nThe letters are *{letterList}\n\n*'
+    def returnDesc(self, players):
+        return f'There are {len(players)} letters, each of you must pick a different letter to succeed the challange.\nThe letters are **{self.letterList}**\n\n'
 
-    async def condition(self, answersDict):
-        for p1 in challangerList:
-            for p2 in challangerList:
+    async def condition(self, answersDict, players):
+        for p1 in players:
+            for p2 in players:
                 if answersDict[p1.user.name] == answersDict[p2.user.name] and p1 != p2:
                     return 'fail'
         return 'success'
+
+    async def startChallange(self):
+        await self.challangeTask(self.challangerList)
+        await self.challangeMessage(self.challangerList, self.returnDesc(self.letterList))
+        await self.startTimer(self.challangerList)
+        global answers
+        result = await self.condition(answers, self.challangerList)
+        answers = {}
+        return result
+
+#Challange dictionary
+challangeDict = {
+    'letters' : PickLetters
+}
