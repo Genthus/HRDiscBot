@@ -1,6 +1,4 @@
-<<<<<<< Updated upstream
 import random
-=======
 import random, asyncio, math
 
 #Challange dictionary
@@ -69,4 +67,3 @@ class PickLetters(Challange):
                 if answersDict[p1.user.name] == answersDict[p2.user.name] and p1 != p2:
                     return 'fail'
         return 'success'
->>>>>>> Stashed changes
