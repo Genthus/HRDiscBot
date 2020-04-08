@@ -17,7 +17,8 @@ More player roles, new challenges, being able to run multiple games in a single 
 
 <ol>
 <li>Create a Discord bot</li>
-    If you're not sure how to do it, follow this [Guide](https://discordpy.readthedocs.io/en/latest/discord.html#creating-a-bot-account).
+    If you're not sure how to do it, follow this [guide](
+    https://discordpy.readthedocs.io/en/latest/discord.html#creating-a-bot-account).
 <li>Get the latest release from this page</li>
 <li>Add your bot key</li>
     Create a file called botKey.py in the folder where you put the release and write "key='your bot key here'" into it.
