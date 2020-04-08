@@ -1,9 +1,8 @@
+/__pycache__
 .gitattributes
-.gitignore
-#ignore bot key
 botKey.py
-*.odt#
+GDD.*
 *.odt
-notes.*
-runBot.*
-__pycache__/
+*.odt#
+notes.org
+runBot.bat
