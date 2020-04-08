@@ -221,8 +221,7 @@ async def retryPartySelect():
 
 #Announce score
 async def scoreboard():
-    global villageTeamWins, werewolfTeamWins
-    await globalMessage(f'The current score is\nVillage: {villageTeamWins}\nWerewolves: {werewolfTeamWins}')
+    await globalMessage(f'The current score is\nVillage: {CyberPoliceTeamWins}\nWerewolves: {HackerTeamWins}')
 
 #Function to end the game
 async def killGame():
