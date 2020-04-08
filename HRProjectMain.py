@@ -1,6 +1,6 @@
 import discord
 from discord.ext import commands
-import random, math, asyncio, roles, botKey
+import random, math, asyncio, roles, botKey, challanges
 
 client = commands.Bot(command_prefix = '')
 
@@ -14,8 +14,8 @@ firstRoundIsOver = False
 
 challangeSize = [1,3,3,4,4,5,4]
 
-villageTeamWins = 0
-werewolfTeamWins = 0
+CyberPoliceTeamWins= 0
+HackerTeamWins= 0
 
 currentRound = 0
 roundTime = [3,4,5,5,6,6,6]
@@ -221,8 +221,7 @@ async def retryPartySelect():
 
 #Announce score
 async def scoreboard():
-    global villageTeamWins, werewolfTeamWins
-    await globalMessage(f'The current score is\nVillage: {villageTeamWins}\nWerewolves: {werewolfTeamWins}')
+    await globalMessage(f'The current score is\nCyber Police: {CyberPoliceTeamWins}\nHackers: {HackerTeamWins}')
 
 #Function to end the game
 async def killGame():
@@ -249,14 +248,14 @@ async def killGame():
 #Check for victory
 async def victoryCheck():
     global villageTeamWins, werewolfTeamWins
-    if villageTeamWins >= 4:
-        print('village team won')
-        await globalMessage('The village team has won the game!\nThe game will close in 30 seconds')
+    if CyberPoliceTeamWins>= 4:
+        print('Cyber Police team won')
+        await globalMessage('The Cyber Police team has won the game!\nThe game will close in 30 seconds')
         return 'end'
 
-    elif werewolfTeamWins >= 4:
-        print('werewolf team won')
-        await globalMessage('The werewolf team has won the game!\nThe game will close in 30 seconds')
+    elif HackerTeamWins>= 4:
+        print('Hacker team won')
+        await globalMessage('The Hacker team has won the game!\nThe game will close in 30 seconds')
         return 'end'
 
 #Whole 7 round game function
@@ -316,19 +315,22 @@ async def switchGameState(stateToSwitchTo):
 
     #Challange room phase
     if gameState ==2:
-        global villageTeamWins, werewolfTeamWins
+        global CyberPoliceTeamWins, HackerTeamWins
         await globalMessage('The selected party will now be sent to the challange room')
         await challangeTransfer()
-        #TO-DO send challange
+        await asyncio.sleep(5)
         for pl in playerClassList:
             if pl not in playersToBeChallanged:
                 pl.gameRole.addCharge()
                 personalMessage(pl, "Your ability has recieved charge")
+        challangePicked = random.choice(list(challanges.challangeDict.keys()))
+        challangeToPlay = challanges.challangeDict.get(challangePicked, 'PickLetters')(playersToBeChallanged)
+        result = await challangeToPlay.startChallange()
         await challangeReturn()
-        #Village win
-        villageTeamWins += 1
-        #Werewolf win
-        werewolfTeamWins += 1
+        if result == 'fail':
+            HackerTeamWins += 1
+        elif result == 'success':
+            CyberPoliceTeamWins +=1
 
 #### COMMANDS ####
 @client.event
@@ -337,7 +339,7 @@ async def on_ready():
 
 #Voting command
 @client.command(aliases = ['Vote'.lower(), 'yes', 'no', 'Yes', 'No'])
-async def vOte(ctx, desicion):
+async def vOte(ctx):
     global playersWhoVoted, noVotes, yesVotes
     yes = 'yes'
     no = 'no'
@@ -346,10 +348,18 @@ async def vOte(ctx, desicion):
         if yes in message:
             yesVotes +=1
             print(ctx.message.content)
+            await ctx.channel.send('You voted yes')
         elif no in message:
             noVotes =+1
             print(ctx.message.content)
+            await ctx.channel.send('You voted no')
         playersWhoVoted.append(ctx.message.author)
+
+#Pick command
+@client.command(aliases = ['pick', 'answer', 'Pick', 'Answer'])
+async def pickAnswer(ctx, *, pick):
+    challanges.answers[ctx.author.name] = pick
+    await ctx.channel.send(f'you picked {pick}')
 
 #Nominate players
 @client.command(aliases = ['nominate'.lower(), 'nom', 'Nom', 'n', 'N'])
@@ -367,7 +377,7 @@ async def nOminate(ctx):
                     playersNominated.append(playerClassList[n-1])
             #Picking from name
             for pl in playerClassList:
-                n = n.lower()
+                n = str(n).lower()
                 name = pl.user.name.lower()
                 if n == name:
                     playersNominated.append(pl)
@@ -382,7 +392,7 @@ async def playerList(ctx):
     else: await ctx.send('There are no players in the lobby')
 
 #Join lobby command
-@client.command(aliases = ['join', 'Join', 'joingame', 'joinGame'])
+@client.command(aliases = ['join', 'Join', 'joingame'])
 async def joinGame(ctx):
     if gameIsRunning == False:
         coincidenceCount = 0
