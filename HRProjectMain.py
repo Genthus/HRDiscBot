@@ -336,7 +336,7 @@ async def on_ready():
     print('Bot is ready.')
 
 #Voting command
-@client.command(aliases = ['Vote'.lower()])
+@client.command(aliases = ['Vote'.lower(), 'yes', 'no', 'Yes', 'No'])
 async def vOte(ctx, desicion):
     global playersWhoVoted, noVotes, yesVotes
     yes = 'yes'
@@ -352,7 +352,7 @@ async def vOte(ctx, desicion):
         playersWhoVoted.append(ctx.message.author)
 
 #Nominate players
-@client.command(aliases = ['nominate'.lower()])
+@client.command(aliases = ['nominate'.lower(), 'nom', 'Nom', 'n', 'N'])
 async def nOminate(ctx):
     if leaderRole in ctx.message.author.roles and gameState == 1 and len(playersNominated) < challangeSize[currentRound]:
         nominees = ctx.message.content
@@ -360,9 +360,17 @@ async def nOminate(ctx):
         nomList.remove(nomList[0])
         print(nomList[0])
         for n in nomList:
-            n = int(n)
-            if n >0 and n <= len(playerClassList):
-                playersNominated.append(playerClassList[n-1])
+            #Picking from number
+            if len(n)==1:
+                n = int(n)
+                if n >0 and n <= len(playerClassList):
+                    playersNominated.append(playerClassList[n-1])
+            #Picking from name
+            for pl in playerClassList:
+                n = n.lower()
+                name = pl.user.name.lower()
+                if n == name:
+                    playersNominated.append(pl)
 
 #List the current players
 @client.command(aliases = ['player list', 'listplayers', 'players'])
@@ -374,7 +382,7 @@ async def playerList(ctx):
     else: await ctx.send('There are no players in the lobby')
 
 #Join lobby command
-@client.command(aliases = ['join', 'Join'])
+@client.command(aliases = ['join', 'Join', 'joingame', 'joinGame'])
 async def joinGame(ctx):
     if gameIsRunning == False:
         coincidenceCount = 0
@@ -384,6 +392,7 @@ async def joinGame(ctx):
             if len(currentPlayerList)==0:
                 global serverLobbyTextChannel
                 serverLobbyTextChannel = ctx.message.channel
+                await ctx.send('You have created a lobby')
                 print('the servel lobyy text channel is set')
             if ctx.message.channel == serverLobbyTextChannel:
                 currentPlayerList.append(ctx.author)
@@ -391,12 +400,14 @@ async def joinGame(ctx):
                 print(ctx.author.name + ' joined')
 
 #Clear lobby
-@client.command(aliases = ['emptyLobby'])
+@client.command(aliases = ['emptyLobby', 'clearL', 'clearl'])
 async def clearLobby(ctx):
     global currentPlayerList
     if len(currentPlayerList)>0 and gameIsRunning == False:
         currentPlayerList = []
         await ctx.send('Lobby has been emptied')
+    else:
+        await ctx.send('No lobby to clear')
 
 #Forcefully end the game
 @client.command(aliases = ['killGame'])
@@ -455,10 +466,11 @@ async def startGame(ctx):
         for pl in currentPlayerList:
             if pl.voice != None:
                 serverLobbyVoiceChannel = pl.voice.channel
-                print(pl.name + 'is now the VC lobby')
+                print(pl.name + ' is now the VC lobby')
                 break
             else:
                 await ctx.send('No players are in a voice channel')
+        
 
         #move players to new voice channel
         for pl in currentPlayerList:
