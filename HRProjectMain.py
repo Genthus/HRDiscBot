@@ -14,8 +14,8 @@ firstRoundIsOver = False
 
 challangeSize = [1,3,3,4,4,5,4]
 
-villageTeamWins = 0
-werewolfTeamWins = 0
+CyberPoliceTeamWins= 0
+HackerTeamWins= 0
 
 currentRound = 0
 roundTime = [3,4,5,5,6,6,6]
@@ -326,8 +326,12 @@ async def switchGameState(stateToSwitchTo):
                 personalMessage(pl, "Your ability has recieved charge")
         challangePicked = random.choice(challanges.challangeDict.keys)
         challangeToPlay = await challanges.challangeDict.get(challangePicked, 'PickLetters')(playersToBeChallanged)
-        await challangeToPlay.startChallange()
+        result = await challangeToPlay.startChallange()
         await challangeReturn()
+        if result == 'fail':
+            HackerTeamWins += 1
+        elif result == 'success':
+            CyberPoliceTeamWins
 
 #### COMMANDS ####
 @client.event
