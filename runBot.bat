@@ -1,1 +1,0 @@
-start cmd.exe /k python C:\Users\solra\Documents\GitHub\HRDiscBot\HRProjectMain.py
