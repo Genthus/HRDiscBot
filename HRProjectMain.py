@@ -340,26 +340,31 @@ async def on_ready():
 #Voting command
 @client.command(aliases = ['Vote'.lower(), 'yes', 'no', 'Yes', 'No'])
 async def vOte(ctx):
-    global playersWhoVoted, noVotes, yesVotes
-    yes = 'yes'
-    no = 'no'
-    if votingOpen == True and ctx.message.author not in playersWhoVoted:
-        message = ctx.message.content.lower()
-        if yes in message:
-            yesVotes +=1
-            print(ctx.message.content)
-            await ctx.channel.send('You voted yes')
-        elif no in message:
-            noVotes =+1
-            print(ctx.message.content)
-            await ctx.channel.send('You voted no')
-        playersWhoVoted.append(ctx.message.author)
+    if ctx.message.channel.category.name == 'HRProject':
+        global playersWhoVoted, noVotes, yesVotes
+        yes = 'yes'
+        no = 'no'
+        if votingOpen == True and ctx.message.author not in playersWhoVoted:
+            message = ctx.message.content.lower()
+            if yes in message:
+                yesVotes +=1
+                print(ctx.message.content)
+                await ctx.channel.send('You voted yes')
+                playersWhoVoted.append(ctx.message.author)
+            elif no in message:
+                noVotes =+1
+                print(ctx.message.content)
+                await ctx.channel.send('You voted no')
+                playersWhoVoted.append(ctx.message.author)
+            else:
+                await ctx.send('Try again')
 
 #Pick command
 @client.command(aliases = ['pick', 'answer', 'Pick', 'Answer'])
 async def pickAnswer(ctx, *, pick):
-    challanges.answers[ctx.author.name] = pick
-    await ctx.channel.send(f'you picked {pick}')
+    if ctx.message.channel.category.name == 'HRProject':
+        challanges.answers[ctx.author.name] = pick
+        await ctx.channel.send(f'you picked {pick}')
 
 #Nominate players
 @client.command(aliases = ['nominate'.lower(), 'nom', 'Nom', 'n', 'N'])
@@ -385,16 +390,17 @@ async def nOminate(ctx):
 #List the current players
 @client.command(aliases = ['player list', 'listplayers', 'players'])
 async def playerList(ctx):
-    if len(currentPlayerList)>0:
-        await ctx.send('Players:')
-        for n in range(len(currentPlayerList)):
-            await ctx.send(str(n+1) + '.  ' + currentPlayerList[n].name)
-    else: await ctx.send('There are no players in the lobby')
+    if ctx.message.channel.category.name == 'HRProject':
+        if len(currentPlayerList)>0:
+            await ctx.send('Players:')
+            for n in range(len(currentPlayerList)):
+                await ctx.send(str(n+1) + '.  ' + currentPlayerList[n].name)
+            else: await ctx.send('There are no players in the lobby')
 
 #Join lobby command
 @client.command(aliases = ['join', 'Join', 'joingame'])
 async def joinGame(ctx):
-    if gameIsRunning == False:
+    if gameIsRunning == False and ctx.message.channel.category.name == 'HRProject':
         coincidenceCount = 0
         for n in range(len(currentPlayerList)):
             if currentPlayerList[n] == ctx.author: coincidenceCount+=1
@@ -412,90 +418,90 @@ async def joinGame(ctx):
 #Clear lobby
 @client.command(aliases = ['emptyLobby', 'clearL', 'clearl'])
 async def clearLobby(ctx):
-    global currentPlayerList
-    if len(currentPlayerList)>0 and gameIsRunning == False:
-        currentPlayerList = []
-        await ctx.send('Lobby has been emptied')
-    else:
-        await ctx.send('No lobby to clear')
+    if ctx.message.channel.category.name == 'HRProject':
+        global currentPlayerList
+        if len(currentPlayerList)>0 and gameIsRunning == False:
+            currentPlayerList = []
+            await ctx.send('Lobby has been emptied')
+        else:
+            await ctx.send('No lobby to clear')
 
 #Forcefully end the game
 @client.command(aliases = ['killGame'])
 async def endTheGame(ctx):
-    if gameIsRunning and ctx.message.channel == serverLobbyTextChannel:
-        await killGame()
-        await ctx.send('Game has been forced to end')
+    if ctx.message.channel.category.name == 'HRProject':
+        if gameIsRunning and ctx.message.channel == serverLobbyTextChannel:
+            await killGame()
+            await ctx.send('Game has been forced to end')
 
 #Game Setup
 @client.command(aliases = ['gameStart'])
 async def startGame(ctx):
-    global gameIsRunning
-    if not gameIsRunning:
+    if ctx.message.channel.category.name == 'HRProject':
+        global gameIsRunning
+        if not gameIsRunning:
 
-        #Create game channels
-        global gameVoiceChannel, gameChallangeRoom
-        gameCategory = discord.utils.get(ctx.guild.categories, name = 'HRProject')
-        gameVoiceChannel = await gameCategory.create_voice_channel(name = 'Game VC', position = 0, user_limit = len(currentPlayerList))
-        channelsCreated.append(gameVoiceChannel)
-        challangeOverwrites = {
-            ctx.guild.default_role : discord.PermissionOverwrite(connect = False)
-        }
-        gameChallangeRoom = await gameCategory.create_voice_channel(name = 'Challange Room')
-        channelsCreated.append(gameChallangeRoom)
-
-        #Set Roles and nicknames
-        n=1
-        for pl in currentPlayerList:
-            role = await ctx.guild.create_role(name = str('Player '+ str(n)), hoist = True)
-            await pl.add_roles(role)
-            rolesCreated.append(role)
-            print('user ' + pl.name + ' was given the role of ' + role.name)
-
-            #Create channels for players
-            overwrites = {
-                ctx.guild.default_role: discord.PermissionOverwrite(read_messages = False),
-                role: discord.PermissionOverwrite(read_messages = True)
+            #Create game channels
+            global gameVoiceChannel, gameChallangeRoom
+            gameCategory = discord.utils.get(ctx.guild.categories, name = 'HRProject')
+            gameVoiceChannel = await gameCategory.create_voice_channel(name = 'Game VC', position = 0, user_limit = len(currentPlayerList))
+            channelsCreated.append(gameVoiceChannel)
+            challangeOverwrites = {
+                ctx.guild.default_role : discord.PermissionOverwrite(connect = False)
             }
-            playerChannel = await gameCategory.create_text_channel(name = f"{pl.name}'s Dashboard", overwrites = overwrites)
+            gameChallangeRoom = await gameCategory.create_voice_channel(name = 'Challange Room')
+            channelsCreated.append(gameChallangeRoom)
 
-            print(f'Channel for player {pl.name} was created')
-            channelsCreated.append(playerChannel)
-            #await playerChannel.send(f'Welcome to your dashboard {pl.mention}')
+            #Set Roles and nicknames
+            n=1
+            for pl in currentPlayerList:
+                role = await ctx.guild.create_role(name = str('Player '+ str(n)), hoist = True)
+                await pl.add_roles(role)
+                rolesCreated.append(role)
+                print('user ' + pl.name + ' was given the role of ' + role.name)
 
-            #Create instances of players with user, role, and game role
-            playerClassList.append(Player(pl, role, playerChannel))
-            await globalMessage(f'Welcome to your dashboard {pl.mention}')
-            n+=1
+                #Create channels for players
+                overwrites = {
+                    ctx.guild.default_role: discord.PermissionOverwrite(read_messages = False),
+                    role: discord.PermissionOverwrite(read_messages = True)
+                }
+                playerChannel = await gameCategory.create_text_channel(name = f"{pl.name}'s Dashboard", overwrites = overwrites)
 
+                print(f'Channel for player {pl.name} was created')
+                channelsCreated.append(playerChannel)
+                #await playerChannel.send(f'Welcome to your dashboard {pl.mention}')
 
-        await ctx.send('Roles have been set!')
+                #Create instances of players with user, role, and game role
+                playerClassList.append(Player(pl, role, playerChannel))
+                await globalMessage(f'Welcome to your dashboard {pl.mention}')
+                n+=1
 
+                await ctx.send('Roles have been set!')
 
-        #Save player 0's voice channel as lobby
-        global serverLobbyVoiceChannel
-        for pl in currentPlayerList:
-            if pl.voice != None:
-                serverLobbyVoiceChannel = pl.voice.channel
-                print(pl.name + ' is now the VC lobby')
-                break
-            else:
-                await ctx.send('No players are in a voice channel')
-        
+            #Save player 0's voice channel as lobby
+            global serverLobbyVoiceChannel
+                for pl in currentPlayerList:
+                    if pl.voice != None:
+                        serverLobbyVoiceChannel = pl.voice.channel
+                        print(pl.name + ' is now the VC lobby')
+                        break
+                    else:
+                        await ctx.send('No players are in a voice channel')
 
-        #move players to new voice channel
-        for pl in currentPlayerList:
-            await pl.move_to(gameVoiceChannel)
+            #move players to new voice channel
+                for pl in currentPlayerList:
+                    await pl.move_to(gameVoiceChannel)
 
-        #Create leader role and assign it to a random player
-        global leaderRole
-        global leaderPlayer
-        leaderRole = await ctx.guild.create_role(name = 'Leader', hoist = False)
-        leaderPlayer = random.choice(playerClassList)
-        await leaderPlayer.user.add_roles(leaderRole)
-        rolesCreated.append(leaderRole)
+            #Create leader role and assign it to a random player
+            global leaderRole
+            global leaderPlayer
+            leaderRole = await ctx.guild.create_role(name = 'Leader', hoist = False)
+            leaderPlayer = random.choice(playerClassList)
+            await leaderPlayer.user.add_roles(leaderRole)
+            rolesCreated.append(leaderRole)
 
-        gameIsRunning = True
-        await gameFlow()
+            gameIsRunning = True
+            await gameFlow()
 
 #Server Setup Command
 @client.command(aliases = ['serverSetup' , 'setupServer'])
@@ -510,15 +516,18 @@ async def prepareServer(ctx):
 #Contact command
 @client.command()
 async def contact(ctx):
-    await ctx.send('github page:https://github.com/Genthus/HRDiscBot \ne-mail: genthus0@gmail.com ')
+    if ctx.message.channel.category.name == 'HRProject':
+        await ctx.send('github page:https://github.com/Genthus/HRDiscBot \ne-mail: genthus0@gmail.com ')
 
 @client.command(aliases = ['howtoplay', 'HowToPlay', 'howToPlay'])
 async def instructions(ctx):
-    await ctx.send('A complete guide is here: https://github.com/Genthus/HRDiscBot#how-to-play')
+    if ctx.category.name == 'HRProject':
+        await ctx.send('A complete guide is here: https://github.com/Genthus/HRDiscBot#how-to-play')
 
 @client.command(aliases = ['bothelp', 'botHelp', 'aaaaaaaaaaaaa'])
 async def help(ctx):
-    await ctx.send(f'type any of the keywords to activate it\nhelp : this message\ninstructions : link to the game guide\njoin : lets you join the lobby (this can only be done in the lobby)\n startGame : starts the game')
+    if ctx.message.channel.category.name == 'HRProject':
+        await ctx.send(f'type any of the keywords to activate it\nhelp : this message\ninstructions : link to the game guide\njoin : lets you join the lobby (this can only be done in the lobby)\n startGame : starts the game\nkillGame : ends the game and deletes everything made for the current game')
 
 
 
