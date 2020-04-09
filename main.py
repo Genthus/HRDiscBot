@@ -155,7 +155,7 @@ async def switchLeader():
 async def startVote():
     global playersNominated, playersWhoVoted, votingOpen, yesVotes, noVotes
     votingOpen = True
-    await globalMessage('The voting proccess is now open, type "vote yes" or "vote no"\nThe nominated party is:')
+    await globalMessage('The voting proccess is now open, type "vote yes" or "vote no", not voting counts as voting no\nThe nominated party is:')
     for pl in playersNominated:
         await globalMessage(f'{pl.user.name}')
     """
@@ -170,6 +170,7 @@ async def startVote():
         voteTimer -=1
         for ch in voteTimerMessage:
             await ch.edit(content = f'You have {voteTimer} seconds to vote')
+    noVotes = len(playerClassList)-yesVotes
     if yesVotes > noVotes:
         await globalMessage(f'The vote has passed with {yesVotes} yes votes against {noVotes}\nIn 15 seconds the players will be sent to the challange room.')
         await asyncio.sleep(15)
