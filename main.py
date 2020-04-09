@@ -434,7 +434,7 @@ async def nOminate(ctx):
         print(nomList[0])
         for n in nomList:
             # Picking from number
-            if len(n) is 1:
+            if len(n) == 1:
                 n = int(n)
                 if n > 0 and n <= len(playerClassList):
                     playersNominated.append(playerClassList[n-1])
@@ -465,7 +465,7 @@ async def joinGame(ctx):
             if currentPlayerList[n] is ctx.author:
                 coincidenceCount += 1
         if coincidenceCount == 0:
-            if len(currentPlayerList) is 0:
+            if len(currentPlayerList) == 0:
                 global serverLobbyTextChannel
                 serverLobbyTextChannel = ctx.message.channel
                 await ctx.send('You have created a lobby')
