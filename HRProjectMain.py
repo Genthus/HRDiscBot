@@ -26,7 +26,7 @@ gameVoiceChannel = None
 gameIsRunning = False
 firstRoundIsOver = False
 
-challangeSize = [1,3,3,4,4,5,4]
+challangeSize = [2,3,3,4,4,5,4]
 
 CyberPoliceTeamWins= 0
 HackerTeamWins= 0
