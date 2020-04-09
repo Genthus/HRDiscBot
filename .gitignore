@@ -1,8 +1,0 @@
-.gitignore
-/__pycache__
-.gitattributes
-botKey.py
-GDD.*
-*.odt
-*.odt#
-notes.org
