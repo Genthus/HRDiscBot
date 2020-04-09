@@ -395,7 +395,7 @@ async def playerList(ctx):
             await ctx.send('Players:')
             for n in range(len(currentPlayerList)):
                 await ctx.send(str(n+1) + '.  ' + currentPlayerList[n].name)
-            else: await ctx.send('There are no players in the lobby')
+        else: await ctx.send('There are no players in the lobby')
 
 #Join lobby command
 @client.command(aliases = ['join', 'Join', 'joingame'])
@@ -480,17 +480,17 @@ async def startGame(ctx):
 
             #Save player 0's voice channel as lobby
             global serverLobbyVoiceChannel
-                for pl in currentPlayerList:
-                    if pl.voice != None:
-                        serverLobbyVoiceChannel = pl.voice.channel
-                        print(pl.name + ' is now the VC lobby')
-                        break
-                    else:
-                        await ctx.send('No players are in a voice channel')
+            for pl in currentPlayerList:
+                if pl.voice != None:
+                    serverLobbyVoiceChannel = pl.voice.channel
+                    print(pl.name + ' is now the VC lobby')
+                    break
+                else:
+                    await ctx.send('No players are in a voice channel')
 
             #move players to new voice channel
-                for pl in currentPlayerList:
-                    await pl.move_to(gameVoiceChannel)
+            for pl in currentPlayerList:
+                await pl.move_to(gameVoiceChannel)
 
             #Create leader role and assign it to a random player
             global leaderRole
