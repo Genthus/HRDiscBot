@@ -456,7 +456,7 @@ async def startGame(ctx):
                 ctx.guild.default_role: discord.PermissionOverwrite(read_messages = False),
                 role: discord.PermissionOverwrite(read_messages = True)
             }
-            playerChannel = await gameCategory.create_text_channel(name = 'Dashboard', overwrites = overwrites)
+            playerChannel = await gameCategory.create_text_channel(name = f"{pl.name}'s Dashboard", overwrites = overwrites)
 
             print(f'Channel for player {pl.name} was created')
             channelsCreated.append(playerChannel)
@@ -510,9 +510,15 @@ async def prepareServer(ctx):
 #Contact command
 @client.command()
 async def contact(ctx):
-    await ctx.send('email: genthus0@gmail.com')
+    await ctx.send('github page:https://github.com/Genthus/HRDiscBot \ne-mail: genthus0@gmail.com ')
 
+@client.command(aliases = ['howtoplay', 'HowToPlay', 'howToPlay'])
+async def instructions(ctx):
+    await ctx.send('A complete guide is here: https://github.com/Genthus/HRDiscBot#how-to-play')
 
+@client.command(aliases = ['bothelp', 'botHelp', 'aaaaaaaaaaaaa'])
+async def help(ctx):
+    await ctx.send(f'type any of the keywords to activate it\nhelp : this message\ninstructions : link to the game guide\njoin : lets you join the lobby (this can only be done in the lobby)\n startGame : starts the game')
 
 
 

@@ -44,7 +44,7 @@ class PickLetters(Challange):
         print(self.letterList)
 
     def returnDesc(self, players):
-        return f'There are {len(players)} letters, each of you must pick a different letter to succeed the challange.\nThe letters are **{self.letterList}**\n\n'
+        return f'There are {len(players)} letters, each of you must pick a different letter to succeed the challange.\nThe letters are **{self.letterList}**\n\nTo pick a letter type "pick" and then the letter you want to pick'
 
     async def condition(self, answersDict, players):
         for p1 in players:
