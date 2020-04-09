@@ -97,8 +97,7 @@ async def challangeTransfer():
     playersNominated = []
     for pl in playersToBeChallanged:
         await pl.user.move_to(gameChallangeRoom)
-        await personalMessage(pl, 'You are now in the challange room.\n
-                              Prepare yourselves')
+        await personalMessage(pl, 'You are now in the challange room.\n Prepare yourselves')
 
 
 # Return challangers to main
