@@ -17,8 +17,10 @@ More player roles, new challenges, being able to run multiple games in a single 
 
 <ol>
 <li>Create a Discord bot</li>
-    If you're not sure how to do it, follow this ![guide](https://discordpy.readthedocs.io/en/latest/discord.html#creating-a-bot-account).
-<li>Get the latest release from ![the releases page](https://github.com/Genthus/HRDiscBot/releases)</li>
+    If you're not sure how to do it, follow this 
+    [guide](https://discordpy.readthedocs.io/en/latest/discord.html#creating-a-bot-account).
+<li>Get the latest release from 
+    [the releases page](https://github.com/Genthus/HRDiscBot/releases)</li>
 <li>Create a new Discord server and invite the bot</li>
 <li>Run the .exe file</li>
     <li>Paste your bot key</li>
@@ -29,7 +31,7 @@ More player roles, new challenges, being able to run multiple games in a single 
 
 #### Game setup
 
-First off, get a few friends to join your sever and have everyone join a voice channel. After that, type "join" into the lobby text channel, this will create a game lobby, now everyone can join by typing "join" in the same channel you did (You can type "players" to see the players currently in the lobby or "clearLobby" to clean the lobby).
+First off, get a few friends to join your server and have everyone join a voice channel. After that, type "join" into the lobby text channel, this will create a game lobby, now everyone can join by typing "join" in the same channel you did (You can type "players" to see the players currently in the lobby or "clearLobby" to clean the lobby).
 
 Once everyone is in, type "startGame", this will create the necessary game channels and everyone's own text channel, any player should only type and read from their own dashboard (the server owner can see every channel, but peeking is considered cheating).
 
