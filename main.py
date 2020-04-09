@@ -506,6 +506,10 @@ async def startGame(ctx):
             for pl in currentPlayerList:
                 await pl.move_to(gameVoiceChannel)
 
+            #Multiply challange size
+            for n in challangeSize:
+                challangeSize[n] = math.roof(challangeSize*len(playerClassList)/5)
+
             #Create leader role and assign it to a random player
             global leaderRole
             global leaderPlayer
