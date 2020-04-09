@@ -1,14 +1,14 @@
+import discord
+from discord.ext import commands
+import math
+import random
+import asyncio
+import roles
+import challanges
 """
 HRDiscBot, a Discord bot made by Genthus
 github.com/Genthus/HRDiscBot
 """
-import discord
-from discord.ext import commands
-import math
-import asyncio
-import roles
-import challanges
-
 key = ''
 try:
     with open('botKey.txt', 'r') as f:
@@ -97,7 +97,7 @@ async def challangeTransfer():
     playersNominated = []
     for pl in playersToBeChallanged:
         await pl.user.move_to(gameChallangeRoom)
-        await personalMessage(pl, 'You are now in the challange room.\n Prepare yourselves')
+        await personalMessage(pl, f'You are now in the challange room. \n Prepare yourselves')
 
 
 # Return challangers to main
@@ -140,11 +140,12 @@ async def setGameRoles(playerClasses):
     await modes.get(roleSetMode, 'basic')(playerClasses)
     for pl in playerClassList:
         await personalMessage(pl,
-                              f'Your role is {pl.gameRole.name}\n
+                              f'''Your role is {pl.gameRole.name}\n
                               You are part of the {pl.gameRole.team} team\n
                               {pl.gameRole.description}\n
                               {pl.gameRole.winCondition}\n
-                              {pl.gameRole.abilityDescription}')
+                              {pl.gameRole.abilityDescription}
+                              ''')
         if pl.gameRole.name == 'Hacker':
             await pl.gameRole.ability(playerClassList, pl)
 
@@ -173,8 +174,8 @@ async def switchLeader():
 async def startVote():
     global playersNominated, playersWhoVoted, votingOpen, yesVotes, noVotes
     votingOpen = True
-    await globalMessage('The voting proccess is now open, type "vote yes" or "vote no"\n
-                        Not voting counts as voting no\nThe nominated party is: \n')
+    await globalMessage('''The voting proccess is now open, type "vote yes" or "vote no"\n
+                        Not voting counts as voting no\nThe nominated party is: ''')
     for pl in playersNominated:
         await globalMessage(f'{pl.user.name}')
     """
@@ -193,8 +194,8 @@ async def startVote():
     noVotes = len(playerClassList)-yesVotes
     if yesVotes > noVotes:
         await globalMessage(
-            f'The vote has passed with {yesVotes} yes votes against {noVotes}\n
-            In 15 seconds the players will be sent to the challange room.')
+            f'''The vote has passed with {yesVotes} yes votes against {noVotes}\n
+            In 15 seconds the players will be sent to the challange room.''')
         await asyncio.sleep(15)
         await switchLeader()
         playersWhoVoted = []
@@ -203,9 +204,9 @@ async def startVote():
         noVotes = 0
         return 1
     else:
-        await globalMessage("The vote didn't pass.
+        await globalMessage("""The vote didn't pass.
                             Leadership will be transfered
-                            and the nomination process will restart.")
+                            and the nomination process will restart.""")
         await switchLeader()
         playersNominated = []
         playersWhoVoted = []
@@ -220,9 +221,9 @@ async def setRoundTimer(round):
     global currentTimer, currentTimerString
     currentTimer = roundTime[round]*60
     originalTime = currentTimer
-    timerMessage = await globalMessage(f'Time remaining: {currentTimerString}')
+    timerMessage = await globalMessage(f'''Time remaining: {currentTimerString}')
     await leaderPlayer.playerChannel.send(f'\nThese are the available players\n
-                                          {await playerListMessage()}')
+                                          {await playerListMessage()}''')
     for n in range(originalTime):
         if len(playersNominated) < challangeSize[round]:
             currentTimer -= 1
@@ -233,13 +234,11 @@ async def setRoundTimer(round):
                     nomineesString = ''
                     for pl in playersNominated:
                         nomineesString += f'{pl.user.name}\n'
-                    await m.edit(content=f'
-                                 Time Remaining: {currentTimerString}\n
-                                 The current nominees are: {nomineesString}')
+                    await m.edit(content=f'''Time Remaining: {currentTimerString}\n
+                                 The current nominees are: {nomineesString}''')
                 else:
-                    await m.edit(content=f'
-                                 Time Remaining: {currentTimerString}\n
-                                 There are currently no nominated players')
+                    await m.edit(content=f'''Time Remaining: {currentTimerString}\n
+                                 There are currently no nominated players''')
             if playersNominated == challangeSize:
                 await m.delete()
                 await globalMessage('The nominees have been decided.')
@@ -267,9 +266,9 @@ async def retryPartySelect():
 
 # Announce score
 async def scoreboard():
-    await globalMessage(f'The current score is\n
+    await globalMessage(f'''The current score is\n
                         Cyber Police: {CyberPoliceTeamWins}\n
-                        Hackers: {HackerTeamWins}')
+                        Hackers: {HackerTeamWins}''')
 
 
 # Function to end the game
@@ -300,14 +299,14 @@ async def victoryCheck():
     global villageTeamWins, werewolfTeamWins
     if CyberPoliceTeamWins >= 4:
         print('Cyber Police team won')
-        await globalMessage('The Cyber Police team has won the game!\n
-                            The game will close in 30 seconds')
+        await globalMessage('''The Cyber Police team has won the game!\n
+                            The game will close in 30 seconds''')
         return 'end'
 
     elif HackerTeamWins >= 4:
         print('Hacker team won')
-        await globalMessage('The Hacker team has won the game!\n
-                            The game will close in 30 seconds')
+        await globalMessage('''The Hacker team has won the game!\n
+                            The game will close in 30 seconds''')
         return 'end'
 
 
@@ -321,8 +320,8 @@ async def gameFlow():
     for r in range(3):
         r1 = await retryPartySelect()
         if r1 == 'voteFailed':
-            await globalMessage('Since no party was selected for 5 consecutive votes,
-                                the game is over and will be forced to end')
+            await globalMessage('''Since no party was selected for 5 consecutive votes,
+                                the game is over and will be forced to end''')
             await asyncio.sleep(30)
             await killGame()
         else:
@@ -333,8 +332,8 @@ async def gameFlow():
     for r in range(2):
         r1 = await retryPartySelect()
         if r1 == 'voteFailed':
-            await globalMessage('Since no party was selected for 5 consecutive votes,
-                                the game is over and will be forced to end')
+            await globalMessage('''Since no party was selected for 5 consecutive votes,
+                                the game is over and will be forced to end''')
             await asyncio.sleep(30)
             await killGame()
         else:
@@ -359,9 +358,9 @@ async def switchGameState(stateToSwitchTo):
         if firstRoundIsOver is False:
             await globalMessage('Welcome to HRProject, the game will now begin')
             # TO-DO add prompt for rules and instructions here
-            await globalMessage(f"For the first round, you will have {roundTime[0]} minutes to decide the party.\n
+            await globalMessage(f"""For the first round, you will have {roundTime[0]} minutes to decide the party.\n
                                 If the current leader doesn't decide within the time alloted, the role of leader will be appointed to someone else\n
-                                The time begins now")
+                                The time begins now""")
             firstRoundIsOver = True
 
         await globalMessage(f'The current leader is {leaderPlayer.user.mention}, to nominate players, type "nominate a b c",where a b and c are the numbers of the players you wish to nominate\nThe leader must nominate {challangeSize[currentRound]} players')
@@ -587,8 +586,8 @@ async def prepareServer(ctx):
 @client.command()
 async def contact(ctx):
     if ctx.message.channel.category.name == 'HRProject':
-        await ctx.send('github page: https://github.com/Genthus/HRDiscBot \n
-                       e-mail: genthus0@gmail.com ')
+        await ctx.send('''github page: https://github.com/Genthus/HRDiscBot \n
+                       e-mail: genthus0@gmail.com ''')
 
 
 @client.command(aliases=['howtoplay', 'HowToPlay', 'howToPlay'])
@@ -600,12 +599,12 @@ async def instructions(ctx):
 @client.command(aliases=['bothelp', 'botHelp', 'aaaaaaaaaaaaa'])
 async def plshelp(ctx):
     if ctx.message.channel.category.name == 'HRProject':
-        await ctx.send(f'type any of the keywords to activate it\n
+        await ctx.send(f'''type any of the keywords to activate it\n
                        help: this message\n
                        instructions: link to the game guide\n
                        join: lets you join the lobby (this can only be done in the lobby)\n
                        startGame: starts the game\n
-                       killGame: ends the game and deletes everything made for the current game')
+                       killGame: ends the game and deletes everything made for the current game''')
 
 
 client.run(str(key))

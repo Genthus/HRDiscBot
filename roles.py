@@ -1,12 +1,15 @@
-import random, math
+import random
+import math
 
-#Send message to a player dashboard
+
+# Send message to a player dashboard
 async def personalMessage(playerClass, message):
     messageSent = await playerClass.playerChannel.send(message)
     return messageSent
-#Roles dictionary
+# Roles dictionary
 
-#Ability function library
+
+# Ability function library
 async def revealHackers(user, playerClasses):
     message = 'The hacker team is:\n'
     for pl in playerClasses:
@@ -14,14 +17,15 @@ async def revealHackers(user, playerClasses):
             message += f'{pl.user.name}\n'
     await personalMessage(user, message)
 
-#Base game role class
+
+# Base game role class
 class gameRole:
     playerClass = None
-    name = None
-    team = None
-    description = None
-    winCondition = None
-    balanceScore = None
+    name = str
+    team = str
+    description = str
+    winCondition = str
+    balanceScore = str
     ability = None
     charge = 0
     chargePerRound = 0
@@ -32,6 +36,7 @@ class gameRole:
         if self.charge < self.chargeNeeded:
             self.charge += self.chargePerRound
 
+
 class Hacker(gameRole):
     name = 'Hacker'
     team = 'hackers'
@@ -39,11 +44,13 @@ class Hacker(gameRole):
     winCondition = 'You and the other hackers win if 4 challanges are failed'
     balanceScore = -3
     charge = 1
-    chargePerRound =  0
+    chargePerRound = 0
+
     async def ability(self, players, user):
-        if self.charge>= self.chargeNeeded:
+        if self.charge >= self.chargeNeeded:
             self.charge -= self.chargeNeeded
             await revealHackers(user, players)
+
 
 class DeskWorker(gameRole):
     name = 'Desk Worker'
@@ -52,22 +59,23 @@ class DeskWorker(gameRole):
     winCondition = 'You and the Cyber Police win if 4 challanges succeed'
     balanceScore = 1
 
-#Role setting algorithms
+
+# Role setting algorithms
 async def basic(playerClasses):
-    if len(playerClasses)>2:
+    if len(playerClasses) > 2:
         hackerCount = math.floor(len(playerClasses)/3)
     else:
         hackerCount = 1
     print(f'set to have {hackerCount} hackers')
     playersWithoutRole = range(len(playerClasses))
-    playersWithRole =[]
-    #Set hackers
+    playersWithRole = []
+    # Set hackers
     for h in range(hackerCount):
         c = random.choice(playersWithoutRole)
         playersWithRole.append(c)
         playerClasses[c].gameRole = Hacker()
         print(f'set {playerClasses[c].user.name} as {playerClasses[c].gameRole.name}')
-    #Set everyone else as desk workers
+    # Set everyone else as desk workers
     for pl in playersWithoutRole:
         if pl in playersWithRole:
             continue

@@ -1,10 +1,10 @@
-import random, asyncio, math
-
+import asyncio
 
 answers = {}
 
+
 class Challange():
-    challangerList = []
+    challangerList = []  # player class list
     numberOfChallangers = 0
     description = ''
     timer = 60
@@ -26,19 +26,16 @@ class Challange():
         timerMessage = await self.challangeMessage(players, f'You have {timer} seconds')
         for t in timerRange:
             await asyncio.sleep(1)
-            timer-=1
+            timer -= 1
             for m in timerMessage:
-                await m.edit(content = f'You have {timer} seconds')
+                await m.edit(content=f'You have {timer} seconds')
 
-    async def condition():
-        return 'success'
 
 class PickLetters(Challange):
     letterList = []
 
     async def challangeTask(self, players):
         letterList = 'a b c d e f g h i j k l m n o p q r s t u v w x y z'.split(' ')
-        correctAnswers = {}
         for pl in players:
             self.letterList = letterList[0:len(players)]
         print(self.letterList)
@@ -62,7 +59,8 @@ class PickLetters(Challange):
         answers = {}
         return result
 
-#Challange dictionary
+
+# Challange dictionary
 challangeDict = {
-    'letters' : PickLetters
+    'letters': PickLetters
 }
