@@ -4,7 +4,17 @@ github.com/Genthus/HRDiscBot
 """
 import discord
 from discord.ext import commands
-import random, math, asyncio, roles, botKey, challanges
+import random, math, asyncio, roles, challanges
+
+key = ''
+try:
+    with open('botKey.txt', 'r') as f:
+        key = f.readline()
+        f.close()
+except FileNotFoundError:
+    key = input('Paste your bot key here and press enter\n')
+    keyFile = open('botKey.txt', 'w')
+    keyFile.write(key)
 
 client = commands.Bot(command_prefix = '')
 
@@ -529,10 +539,10 @@ async def instructions(ctx):
         await ctx.send('A complete guide is here: https://github.com/Genthus/HRDiscBot#how-to-play')
 
 @client.command(aliases = ['bothelp', 'botHelp', 'aaaaaaaaaaaaa'])
-async def help(ctx):
+async def plshelp(ctx):
     if ctx.message.channel.category.name == 'HRProject':
         await ctx.send(f'type any of the keywords to activate it\nhelp : this message\ninstructions : link to the game guide\njoin : lets you join the lobby (this can only be done in the lobby)\n startGame : starts the game\nkillGame : ends the game and deletes everything made for the current game')
 
 
 
-client.run(botKey.key)
+client.run(str(key))
