@@ -17,8 +17,8 @@ More player roles, new challenges, being able to run multiple games in a single 
 
 <ol>
 <li>Create a Discord bot</li>
-    If you're not sure how to do it, follow this guide https://discordpy.readthedocs.io/en/latest/discord.html#creating-a-bot-account.
-<li>Get the latest release from this page</li>
+    If you're not sure how to do it, follow this [guide](https://www.discordpy.readthedocs.io/en/latest/discord.html#creating-a-bot-account).
+<li>Get the latest release from [the releases page](https://www.github.com/Genthus/HRDiscBot/releases)</li>
 <li>Create a new Discord server and invite the bot</li>
 <li>Run the .exe file</li>
     <li>Paste your bot key</li>
