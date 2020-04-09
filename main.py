@@ -508,7 +508,7 @@ async def startGame(ctx):
 
             #Multiply challange size
             for n in challangeSize:
-                challangeSize[n] = math.roof(challangeSize*len(playerClassList)/5)
+                challangeSize[n] = math.roof(challangeSize*len(playerClassList)/4)
 
             #Create leader role and assign it to a random player
             global leaderRole
