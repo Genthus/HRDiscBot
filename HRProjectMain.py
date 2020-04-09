@@ -1,3 +1,7 @@
+"""
+HRDiscBot, a Discord bot made by Genthus
+github.com/Genthus/HRDiscBot
+"""
 import discord
 from discord.ext import commands
 import random, math, asyncio, roles, botKey, challanges
