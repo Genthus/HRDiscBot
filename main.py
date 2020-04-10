@@ -571,16 +571,39 @@ async def startGame(ctx):
 # Server Setup Command
 @client.command(aliases=['serverSetup', 'setupServer'])
 async def prepareServer(ctx):
-    createdCategory = await ctx.guild.create_category(name='HRProject')
-    print('Category created')
-    await ctx.guild.create_text_channel(name='Lobby',
-                                        category=createdCategory,
-                                        position=0)
-    print('Lobby created')
-    await ctx.guild.create_voice_channel(name='Voice Lobby',
-                                         category=createdCategory,
-                                         position=1)
-    print('Voice lobby created')
+    print(f'setting up in guild: {ctx.guild.name}')
+    gCategories = ctx.guild.categories
+    gCategoryNames = []
+    for gc in gCategories:
+        gCategoryNames.append(gc.name)
+    if 'HRProject' in gCategoryNames:
+        print(f'Category found in guild: {ctx.guild.name}')
+        gameCategory = discord.utils.get(ctx.guild.CategoryChannel, name='HRProject')
+        channels = ctx.guild.categories
+        channelNames = []
+        for ch in channels:
+            channels.append(gc.name)
+        if 'Lobby' in channelNames:
+            print(f'Lobby text channel found in {ctx.guild.name}')
+            # TODO assign guild lobby to this channel
+        else:
+            print(f'Creating text lobby in guild {ctx.guild.name}')
+            textLobby = await gameCategory.create_text_channel(name='Lobby', position=0)
+            # TODO assign guild lobby to this channel
+        if 'Voice Lobby' in channelNames:
+            print(f'Lobby voice channel found in {ctx.guild.name}')
+            # TODO assign guild lobby to this channel
+        else:
+            print(f'Creating voice lobby in guild {ctx.guild.name}')
+            voiceLobby = await gameCategory.create_text_channel(name='Voice Lobby', position=1)
+            # TODO assign guild lobby to this channel
+    else:
+        print(f'creating category, text lobby, voice lobby in guild {ctx.guild.name}')
+        gameCategory = ctx.guild.create_category(name='HRProject')
+        textLobby = await gameCategory.create_text_channel(name='Lobby', position=0)
+        voiceLobby = await gameCategory.create_text_channel(name='Voice Lobby', position=1)
+        # TODO add things created to class
+
 
 # Contact command
 @client.command()
@@ -590,13 +613,15 @@ async def contact(ctx):
                        e-mail: genthus0@gmail.com ''')
 
 
+# instructions command
 @client.command(aliases=['howtoplay', 'HowToPlay', 'howToPlay'])
 async def instructions(ctx):
     if ctx.category.name == 'HRProject':
         await ctx.send('A complete guide is here: https://github.com/Genthus/HRDiscBot#how-to-play')
 
 
-@client.command(aliases=['bothelp', 'botHelp', 'aaaaaaaaaaaaa'])
+# Help command
+@client.command(aliases=['bothelp', 'botHelp', 'aaaaaaaaaaaaa', 'help'])
 async def plshelp(ctx):
     if ctx.message.channel.category.name == 'HRProject':
         await ctx.send(f'''type any of the keywords to activate it\n
