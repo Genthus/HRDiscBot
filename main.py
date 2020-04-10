@@ -21,42 +21,9 @@ except FileNotFoundError:
 
 client = commands.Bot(command_prefix='')
 
-serverLobbyTextChannel = None
-serverLobbyVoiceChannel = None
-gameChallangeRoom = None
-gameVoiceChannel = None
-
-gameIsRunning = False
-firstRoundIsOver = False
-
-challangeSize = [2, 3, 3, 4, 4, 5, 4]
-
-CyberPoliceTeamWins = 0
-HackerTeamWins = 0
-
-currentRound = 0
-roundTime = [3, 4, 5, 5, 6, 6, 6]
-currentTimer = 0
-currentTimerString = ''
-
-votingOpen = False
-yesVotes = 0
-noVotes = 0
-playersWhoVoted = []
-
-currentPlayerList = []
-playerClassList = []
-leaderRole = None
-leaderPlayer = None
-gameState = None
-playersToBeChallanged = []
-playersNominated = []
-
-# Role settings
-roleSetMode = 'basic'
-
-rolesCreated = []
-channelsCreated = []
+guildDict = {
+    # guildID: GameInstance
+}
 
 
 # Player class
@@ -73,277 +40,280 @@ class Player:
         self.playerChannel = pC
 
 
-#      Functions
-
-# Send message to all player dashboards
-async def globalMessage(message):
-    messageList = []
-    for pl in playerClassList:
-        x = await pl.playerChannel.send(message)
-        messageList.append(x)
-    return messageList
-
-
-# Send message to a player dashboard
-async def personalMessage(playerClass, message):
-    messageSent = await playerClass.playerChannel.send(message)
-    return messageSent
-
-
-# Challange room transfer
-async def challangeTransfer():
-    global playersNominated, playersToBeChallanged
-    playersToBeChallanged = playersNominated
-    playersNominated = []
-    for pl in playersToBeChallanged:
-        await pl.user.move_to(gameChallangeRoom)
-        await personalMessage(pl, f'You are now in the challange room. \n Prepare yourselves')
-
-
-# Return challangers to main
-async def challangeReturn():
-    global playersToBeChallanged
-    for pl in playersToBeChallanged:
-        await pl.user.move_to(gameVoiceChannel)
-        await personalMessage(pl, 'You are now back in the main voice channel')
-    playersToBeChallanged = []
-
-
-# Mute everyone in a voice channel
-async def muteVoiceChannel(channelToMute):
-    await channelToMute.set_permissions(channelToMute.guild.default_role,
-                                        speak=False)
-
-
-# Unmute everyone in a voice channel
-async def unmuteVoiceChannel(channelToMute):
-    await channelToMute.set_permissions(channelToMute.guild.default_role,
-                                        speak=True)
-
-
-# Returns list of current players as a message
-async def playerListMessage():
-    message = ''
-    m = 1
-    for pl in playerClassList:
-        message += f'{m}. {pl.user.name}\n'
-        m = +1
-    return(message)
-
-
-# Set gameRoles
-async def setGameRoles(playerClasses):
-    modes = {
-        'basic': roles.basic
-    }
-    global playerClassList
-    await modes.get(roleSetMode, 'basic')(playerClasses)
-    for pl in playerClassList:
-        await personalMessage(pl,
-                              f'''Your role is {pl.gameRole.name}\n
-                              You are part of the {pl.gameRole.team} team\n
-                              {pl.gameRole.description}\n
-                              {pl.gameRole.winCondition}\n
-                              {pl.gameRole.abilityDescription}
-                              ''')
-        if pl.gameRole.name == 'Hacker':
-            await pl.gameRole.ability(playerClassList, pl)
-
-
-# Switch leader role
-async def switchLeader():
-    if len(leaderRole.members) > 0:
-        global leaderPlayer
-        currentLeader = leaderPlayer
-        await leaderPlayer.user.remove_roles(leaderRole)
-        leaderFound = False
-        # Cycle to find leader and give to the next person
-        # This cycles in the order they joined the lobby
-        for pl in playerClassList:
-            if leaderFound is True:
-                await pl.user.add_role(leaderRole)
-                leaderPlayer = pl
-            if pl == currentLeader:
-                leaderFound = True
-                if pl == playerClassList[-1]:
-                    await playerClassList[0].user.add_roles(leaderRole)
-                    leaderPlayer = pl
-
-
-# Voting function
-async def startVote():
-    global playersNominated, playersWhoVoted, votingOpen, yesVotes, noVotes
-    votingOpen = True
-    await globalMessage('''The voting proccess is now open, type "vote yes" or "vote no"\n
-                        Not voting counts as voting no\nThe nominated party is: ''')
-    for pl in playersNominated:
-        await globalMessage(f'{pl.user.name}')
-    """
-    await globalMessage('You have 15 seconds to vote.')
-    await asyncio.sleep(15)
-    """
-    voteTimer = 15
-    voteTimerRange = range(voteTimer)
-    voteTimerMessage = await globalMessage(
-        f'You have {voteTimer} seconds to vote')
-    for t in voteTimerRange:
-        await asyncio.sleep(1)
-        voteTimer -= 1
-        for ch in voteTimerMessage:
-            await ch.edit(content=f'You have {voteTimer} seconds to vote')
-    noVotes = len(playerClassList)-yesVotes
-    if yesVotes > noVotes:
-        await globalMessage(
-            f'''The vote has passed with {yesVotes} yes votes against {noVotes}\n
-            In 15 seconds the players will be sent to the challange room.''')
-        await asyncio.sleep(15)
-        await switchLeader()
-        playersWhoVoted = []
-        votingOpen = False
-        yesVotes = 0
-        noVotes = 0
-        return 1
-    else:
-        await globalMessage("""The vote didn't pass.
-                            Leadership will be transfered
-                            and the nomination process will restart.""")
-        await switchLeader()
-        playersNominated = []
-        playersWhoVoted = []
-        votingOpen = False
-        yesVotes = 0
-        noVotes = 0
-        return 0
-
-
-# Setup the round timer
-async def setRoundTimer(round):
-    global currentTimer, currentTimerString
-    currentTimer = roundTime[round]*60
-    originalTime = currentTimer
-    timerMessage = await globalMessage(f'''Time remaining: {currentTimerString}')
-    await leaderPlayer.playerChannel.send(f'\nThese are the available players\n
-                                          {await playerListMessage()}''')
-    for n in range(originalTime):
-        if len(playersNominated) < challangeSize[round]:
-            currentTimer -= 1
-            currentTimerString = f'{math.floor(currentTimer/60)}:{currentTimer%60}'
-            await asyncio.sleep(1)
-            for m in timerMessage:
-                if len(playersNominated) > 0:
-                    nomineesString = ''
-                    for pl in playersNominated:
-                        nomineesString += f'{pl.user.name}\n'
-                    await m.edit(content=f'''Time Remaining: {currentTimerString}\n
-                                 The current nominees are: {nomineesString}''')
-                else:
-                    await m.edit(content=f'''Time Remaining: {currentTimerString}\n
-                                 There are currently no nominated players''')
-            if playersNominated == challangeSize:
-                await m.delete()
-                await globalMessage('The nominees have been decided.')
-                break
-
-
-# Retry state 1
-async def retryPartySelect():
-    global votesFailed
-    a0 = await switchGameState(1)
-    if a0 == 'voteFailed':
-        a1 = await switchGameState(1)
-        if a1 == 'voteFailed':
-            a2 = await switchGameState(1)
-            if a2 == 'voteFailed':
-                a3 = await switchGameState(1)
-                if a3 == 'voteFailed':
-                    a4 = await switchGameState(1)
-                    if a4 == 'voteFailed':
-                        print('failed to choose party 5 times')
-                        return 'voteFailed'
-    else:
-        return 'votePassed'
-
-
-# Announce score
-async def scoreboard():
-    await globalMessage(f'''The current score is\n
-                        Cyber Police: {CyberPoliceTeamWins}\n
-                        Hackers: {HackerTeamWins}''')
-
-
-# Function to end the game
-async def killGame():
-    global gameIsRunning
-    # Delte created roles
-    for rl in rolesCreated:
-        await rl.delete()
-        print('roles deleted')
-    gameIsRunning = False
-
-    # Move players back to original voice chat
-    global currentPlayerList
-    for pl in currentPlayerList:
-        await pl.move_to(serverLobbyVoiceChannel)
-    # Wipe player list
+class Game():
+    # Guild lobbies
+    serverLobbyTextChannel = None
+    serverLobbyVoiceChannel = None
+    # Game channels
+    gameChallangeRoom = None
+    gameVoiceChannel = None
+    # player variables and lists
     currentPlayerList = []
-    print('playerlist deleted')
-    # Delete created channels
-    global channelsCreated
-    for ch in channelsCreated:
-        await ch.delete()
-    print('channels deleted')
+    playerClassList = []
+    leaderRole = None
+    leaderPlayer = None
+    playersToBeChallanged = []
+    playersNominated = []
+    # Game-state variables
+    gameIsRunning = False
+    firstRoundIsOver = False
+    currentRound = 0
+    votingOpen = False
+    yesVotes = 0
+    noVotes = 0
+    playersWhoVoted = []
+    CyberPoliceTeamWins = 0
+    HackerTeamWins = 0
+    currentTimer = 0
+    currentTimerString = ''
+    gameState = None
+    # Settings
+    shortTime = 15  # time for short timers such as voting
+    challangeSize = [2, 3, 3, 4, 4, 5, 4]
+    roundTime = [3, 4, 5, 5, 6, 6, 6]
+    roleSetMode = 'basic'
+    # Clean-up lists
+    rolesCreated = []
+    channelsCreated = []
 
+    #
+    # Functions
+    #
 
-# Check for victory
-async def victoryCheck():
-    global villageTeamWins, werewolfTeamWins
-    if CyberPoliceTeamWins >= 4:
-        print('Cyber Police team won')
-        await globalMessage('''The Cyber Police team has won the game!\n
-                            The game will close in 30 seconds''')
-        return 'end'
+    # Send message to all player dashboards
+    async def globalMessage(message):
+        messageList = []
+        for pl in self.playerClassList:
+            x = await pl.playerChannel.send(message)
+            messageList.append(x)
+        return messageList
 
-    elif HackerTeamWins >= 4:
-        print('Hacker team won')
-        await globalMessage('''The Hacker team has won the game!\n
-                            The game will close in 30 seconds''')
-        return 'end'
+    # Send message to a player dashboard
+    async def personalMessage(pC, message):
+        messageSent = await pC.playerChannel.send(message)
+        return messageSent
 
+    # Challange room transfer
+    async def challangeTransfer():
+        playersToBeChallanged = self.playersNominated
+        self.playersNominated = []
+        for pl in playersToBeChallanged:
+            await pl.user.move_to(self.gameChallangeRoom)
+            await self.personalMessage(pl, f'You are now in the challange room. \n Prepare yourselves')
 
-# Whole 7 round game function
-async def gameFlow():
-    global currentRound, villageTeamWins, werewolfTeamWins, votesFailed
-    # Give roles
-    await setGameRoles(playerClassList)
-    await asyncio.sleep(15)
-    # Round 1:4
-    for r in range(3):
-        r1 = await retryPartySelect()
-        if r1 == 'voteFailed':
-            await globalMessage('''Since no party was selected for 5 consecutive votes,
-                                the game is over and will be forced to end''')
-            await asyncio.sleep(30)
-            await killGame()
+    # Return challangers to main
+    async def challangeReturn():
+        for pl in self.playersToBeChallanged:
+            await pl.user.move_to(self.gameVoiceChannel)
+            await self.personalMessage(pl, 'You are now back in the main voice channel')
+        self.playersToBeChallanged = []
+
+    # Mute everyone in a voice channel
+    async def muteVoiceChannel(channelToMute):
+        await channelToMute.set_permissions(channelToMute.guild.default_role, speak=False)
+
+    # Unmute everyone in a voice channel
+    async def unmuteVoiceChannel(channelToMute):
+        await channelToMute.set_permissions(channelToMute.guild.default_role, speak=True)
+
+    # Returns list of current players as a message
+    async def playerListMessage():
+        message = ''
+        m = 1
+        for pl in self.playerClassList:
+            message += f'{m}. {pl.user.name}\n'
+            m = +1
+        return(message)
+
+    # Set gameRoles
+    async def setGameRoles(playerClasses):
+        modes = {
+            'basic': roles.basic
+        }
+        await modes.get(roleSetMode, 'basic')(self.playerClasses)
+        for pl in playerClassList:
+            await self.personalMessage(pl,
+                                  f'''Your role is {pl.gameRole.name}\n
+                                  You are part of the {pl.gameRole.team} team\n
+                                  {pl.gameRole.description}\n
+                                  {pl.gameRole.winCondition}\n
+                                  {pl.gameRole.abilityDescription}
+                                  ''')
+            if pl.gameRole.name == 'Hacker':
+                await pl.gameRole.ability(self.playerClassList, pl)
+
+    # Switch leader role
+    async def switchLeader():
+        if len(self.leaderRole.members) > 0:
+            currentLeader = self.leaderPlayer
+            await leaderPlayer.user.remove_roles(leaderRole)
+            leaderFound = False
+            # Cycle to find leader and give to the next person
+            # This cycles in the order they joined the lobby
+            for pl in self.playerClassList:
+                if leaderFound is True:
+                    await pl.user.add_role(leaderRole)
+                    self.leaderPlayer = pl
+                if pl == currentLeader:
+                    leaderFound = True
+                    if pl == self.playerClassList[-1]:
+                        await self.playerClassList[0].user.add_roles(leaderRole)
+                        self.leaderPlayer = pl
+
+    # Voting function
+    async def startVote():
+        self.votingOpen = True
+        await self.globalMessage('''The voting proccess is now open, type "vote yes" or "vote no"\n
+                            Not voting counts as voting no\nThe nominated party is: ''')
+        for pl in self.playersNominated:
+            await self.globalMessage(f'{pl.user.name}')
+        voteTimer = self.shortTime
+        voteTimerRange = range(voteTimer)
+        voteTimerMessage = await self.globalMessage(f'You have {voteTimer} seconds to vote')
+        for t in voteTimerRange:
+            await asyncio.sleep(1)
+            voteTimer -= 1
+            for ch in voteTimerMessage:
+                await ch.edit(content=f'You have {voteTimer} seconds to vote')
+        noVotes = len(playerClassList)-yesVotes
+        if yesVotes > noVotes:
+            await self.globalMessage(
+                f'''The vote has passed with {yesVotes} yes votes against {noVotes}\n
+                In 15 seconds the players will be sent to the challange room.''')
+            await asyncio.sleep(15)
+            await self.switchLeader()
+            playersWhoVoted = []
+            votingOpen = False
+            yesVotes = 0
+            noVotes = 0
+            return 1
         else:
-            await switchGameState(2)
-            await scoreboard()
-            currentRound += 1
-    # rounds 5:7
-    for r in range(2):
-        r1 = await retryPartySelect()
-        if r1 == 'voteFailed':
-            await globalMessage('''Since no party was selected for 5 consecutive votes,
-                                the game is over and will be forced to end''')
-            await asyncio.sleep(30)
-            await killGame()
+            await self.globalMessage("""The vote didn't pass. Leadership will be transfered and the nomination process will restart.""")
+            await self.switchLeader()
+            playersNominated = []
+            playersWhoVoted = []
+            votingOpen = False
+            yesVotes = 0
+            noVotes = 0
+            return 0
+
+
+    # Setup the round timer
+    async def setRoundTimer(round):
+        currentTimer = self.roundTime[round]*60
+        originalTime = currentTimer
+        timerMessage = await self.globalMessage(f'Time remaining: {currentTimerString}')
+        await leaderPlayer.playerChannel.send(f'\nThese are the available players:\n {await self.playerListMessage()}')
+        for n in range(originalTime):
+            if len(self.playersNominated) < self.challangeSize[round]:
+                currentTimer -= 1
+                currentTimerString = f'{math.floor(currentTimer/60)}:{currentTimer%60}'
+                await asyncio.sleep(1)
+                for m in timerMessage:
+                    if len(self.playersNominated) > 0:
+                        nomineesString = ''
+                        for pl in self.playersNominated:
+                            nomineesString += f'{pl.user.name}\n'
+                        await m.edit(content=f'''Time Remaining: {currentTimerString}\n
+                                     The current nominees are: {nomineesString}''')
+                    else:
+                        await m.edit(content=f'''Time Remaining: {currentTimerString}\n
+                                     There are currently no nominated players''')
+                    if self.playersNominated == self.challangeSize[round]:
+                        await m.delete()
+                        await self.globalMessage('The nominees have been decided.')
+                        break
+
+    # Retry state 1
+    async def retryPartySelect():
+        a0 = await self.switchGameState(1)
+        if a0 == 'voteFailed':
+            a1 = await self.switchGameState(1)
+            if a1 == 'voteFailed':
+                a2 = await self.switchGameState(1)
+                if a2 == 'voteFailed':
+                    a3 = await self.switchGameState(1)
+                    if a3 == 'voteFailed':
+                        a4 = await self.switchGameState(1)
+                        if a4 == 'voteFailed':
+                            print('failed to choose party 5 times')
+                            return 'voteFailed'
         else:
-            await switchGameState(2)
-            await scoreboard()
-            if await victoryCheck() == 'end':
+            return 'votePassed'
+
+    # Announce score
+    async def scoreboard():
+        await self.globalMessage(f'''The current score is\n
+                            Cyber Police: {CyberPoliceTeamWins}\n
+                            Hackers: {HackerTeamWins}''')
+
+    # Function to end the game
+    async def killGame():
+        # Delte created roles
+        for rl in self.rolesCreated:
+            await rl.delete()
+            print('roles deleted')
+        gameIsRunning = False
+
+        # Move players back to original voice chat
+        for pl in self.currentPlayerList:
+            await pl.move_to(self.serverLobbyVoiceChannel)
+        # Wipe player list
+        self.currentPlayerList = []
+        print('playerlist deleted')
+        # Delete created channels
+        for ch in self.channelsCreated:
+            await ch.delete()
+        print('channels deleted')
+
+    # Check for victory
+    async def victoryCheck():
+        if self.CyberPoliceTeamWins >= 4:
+            print('Cyber Police team won')
+            await self.globalMessage('''The Cyber Police team has won the game!\n
+                                    The game will close in 30 seconds''')
+            return 'end'
+
+        elif self.HackerTeamWins >= 4:
+            print('Hacker team won')
+            await self.globalMessage('''The Hacker team has won the game!\n
+                                    The game will close in 30 seconds''')
+            return 'end'
+
+    # Whole 7 round game function
+    async def gameFlow():
+        # Give roles
+        await self.setGameRoles(playerClassList)
+        await asyncio.sleep(15)
+        # Round 1:4
+        for r in range(3):
+            r1 = await self.retryPartySelect()
+            if r1 == 'voteFailed':
+                await self.globalMessage('''Since no party was selected for 5 consecutive votes,
+                                the game is over and will be forced to end''')
                 await asyncio.sleep(30)
-                await killGame()
-            currentRound += 1
+                await self.killGame()
+            else:
+                await self.switchGameState(2)
+                await self.scoreboard()
+                self.currentRound += 1
+        # rounds 5:7
+        for r in range(2):
+            r1 = await self.retryPartySelect()
+            if r1 == 'voteFailed':
+                await self.globalMessage('''Since no party was selected for 5 consecutive votes,
+                                the game is over and will be forced to end''')
+                await asyncio.sleep(30)
+                await self.killGame()
+            else:
+                await self.switchGameState(2)
+                await self.scoreboard()
+                if await self.victoryCheck() == 'end':
+                    await asyncio.sleep(30)
+                    await self.killGame()
+                    self.currentRound += 1
 
+# TODO CONTINUE CHANGING INDENTS
 
 # Function to switch gamestate
 async def switchGameState(stateToSwitchTo):
@@ -571,16 +541,39 @@ async def startGame(ctx):
 # Server Setup Command
 @client.command(aliases=['serverSetup', 'setupServer'])
 async def prepareServer(ctx):
-    createdCategory = await ctx.guild.create_category(name='HRProject')
-    print('Category created')
-    await ctx.guild.create_text_channel(name='Lobby',
-                                        category=createdCategory,
-                                        position=0)
-    print('Lobby created')
-    await ctx.guild.create_voice_channel(name='Voice Lobby',
-                                         category=createdCategory,
-                                         position=1)
-    print('Voice lobby created')
+    print(f'setting up in guild: {ctx.guild.name}')
+    gCategories = ctx.guild.categories
+    gCategoryNames = []
+    for gc in gCategories:
+        gCategoryNames.append(gc.name)
+    if 'HRProject' in gCategoryNames:
+        print(f'Category found in guild: {ctx.guild.name}')
+        gameCategory = discord.utils.get(ctx.guild.CategoryChannel, name='HRProject')
+        channels = ctx.guild.categories
+        channelNames = []
+        for ch in channels:
+            channels.append(gc.name)
+        if 'Lobby' in channelNames:
+            print(f'Lobby text channel found in {ctx.guild.name}')
+            # TODO assign guild lobby to this channel
+        else:
+            print(f'Creating text lobby in guild {ctx.guild.name}')
+            textLobby = await gameCategory.create_text_channel(name='Lobby', position=0)
+            # TODO assign guild lobby to this channel
+        if 'Voice Lobby' in channelNames:
+            print(f'Lobby voice channel found in {ctx.guild.name}')
+            # TODO assign guild lobby to this channel
+        else:
+            print(f'Creating voice lobby in guild {ctx.guild.name}')
+            voiceLobby = await gameCategory.create_text_channel(name='Voice Lobby', position=1)
+            # TODO assign guild lobby to this channel
+    else:
+        print(f'creating category, text lobby, voice lobby in guild {ctx.guild.name}')
+        gameCategory = ctx.guild.create_category(name='HRProject')
+        textLobby = await gameCategory.create_text_channel(name='Lobby', position=0)
+        voiceLobby = await gameCategory.create_text_channel(name='Voice Lobby', position=1)
+        # TODO add things created to class
+
 
 # Contact command
 @client.command()
@@ -590,13 +583,21 @@ async def contact(ctx):
                        e-mail: genthus0@gmail.com ''')
 
 
+# instructions command
 @client.command(aliases=['howtoplay', 'HowToPlay', 'howToPlay'])
 async def instructions(ctx):
     if ctx.category.name == 'HRProject':
         await ctx.send('A complete guide is here: https://github.com/Genthus/HRDiscBot#how-to-play')
 
 
-@client.command(aliases=['bothelp', 'botHelp', 'aaaaaaaaaaaaa'])
+# delete category and channels if removed
+@client.event()
+async def on_guild_remove():
+    # TODO try to kill game, remove lobbies and category
+
+
+# Help command
+@client.command(aliases=['bothelp', 'botHelp', 'aaaaaaaaaaaaa', 'hrprojecthelp'])
 async def plshelp(ctx):
     if ctx.message.channel.category.name == 'HRProject':
         await ctx.send(f'''type any of the keywords to activate it\n
