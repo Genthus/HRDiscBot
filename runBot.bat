@@ -1,1 +1,1 @@
-start cmd.exe /k python HRProjectMain.py
+start cmd.exe /k python main.py

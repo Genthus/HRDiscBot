@@ -1,6 +1,5 @@
 import asyncio
 
-answers = {}
 
 
 class Challange():
@@ -8,6 +7,7 @@ class Challange():
     numberOfChallangers = 0
     description = ''
     timer = 60
+    answers = {}
 
     def __init__(self, plc):
         self.challangerList = plc
@@ -54,9 +54,8 @@ class PickLetters(Challange):
         await self.challangeTask(self.challangerList)
         await self.challangeMessage(self.challangerList, self.returnDesc(self.letterList))
         await self.startTimer(self.challangerList)
-        global answers
-        result = await self.condition(answers, self.challangerList)
-        answers = {}
+        result = await self.condition(self.answers, self.challangerList)
+        self.answers = {}
         return result
 
 
