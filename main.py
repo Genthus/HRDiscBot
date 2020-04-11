@@ -47,7 +47,7 @@ async def vOte(ctx):
         gInstance = guildDict[ctx.guild]
     except KeyError:
         print(f'gInstance not found in guild: {ctx.guild.name}')
-    if ctx.channel.category.name == 'HRProject':
+    if ctx.channel.category.name == 'Hidden Role Game':
         yes = 'yes'
         no = 'no'
         if gInstance.votingOpen is True and ctx.message.author not in gInstance.playersWhoVoted:
@@ -66,7 +66,7 @@ async def vOte(ctx):
 # Pick command
 @client.command(aliases=['pick', 'answer', 'Pick', 'Answer'])
 async def pickAnswer(ctx, *, pick):
-    if ctx.channel.category.name == 'HRProject':
+    if ctx.channel.category.name == 'Hidden Role Game':
         try:
             gInstance = guildDict[ctx.guild]
             gInstance.challangeClass.answers[ctx.author.name] = pick
@@ -106,7 +106,7 @@ async def playerList(ctx):
         lobby = lobbyDict[ctx.guild]
     except KeyError:
         print(f'gInstance not found in guild: {ctx.guild.name}')
-    if ctx.channel.category.name == 'HRProject':
+    if ctx.channel.category.name == 'Hidden Role Game':
         if len(lobby) > 0:
             await ctx.send('Players:')
             for n in range(len(lobby)):
@@ -117,7 +117,7 @@ async def playerList(ctx):
 # Join lobby command
 @client.command(aliases=['join', 'Join', 'joingame'])
 async def joinGame(ctx):
-    if ctx.channel.category.name == 'HRProject':
+    if ctx.channel.category.name == 'Hidden Role Game':
         global lobbyDict
         lobby = None
         try:
@@ -174,7 +174,7 @@ async def joinGame(ctx):
 # Clear lobby
 @client.command(aliases=['emptyLobby', 'clearL', 'clearl'])
 async def clearLobby(ctx):
-    if ctx.channel.category.name == 'HRProject':
+    if ctx.channel.category.name == 'Hidden Role Game':
         try:
             lobbyDict[ctx.guild] = []
             await ctx.send('Lobby has been emptied')
@@ -184,7 +184,7 @@ async def clearLobby(ctx):
 # Forcefully end the game
 @client.command(aliases=['killGame'])
 async def endTheGame(ctx):
-    if ctx.channel.category.name == 'HRProject':
+    if ctx.channel.category.name == 'Hidden Role Game':
         try:
             gInstance = guildDict[ctx.guild]
         except KeyError:
@@ -198,7 +198,7 @@ async def endTheGame(ctx):
 async def startGame(ctx):
     global lobbyDict
     global guildDict
-    if ctx.channel.category.name == 'HRProject':
+    if ctx.channel.category.name == 'Hidden Role Game':
         try:
             gInstance = guildDict[ctx.guild]
             if gInstance.gameIsRunning is False:
@@ -219,7 +219,7 @@ async def startGame(ctx):
 
             # Create game channels
             gInstance.channelsCreated = []
-            gameCategory = discord.utils.get(ctx.guild.categories, name='HRProject')
+            gameCategory = discord.utils.get(ctx.guild.categories, name='Hidden Role Game')
             gInstance.gameVoiceChannel = await gameCategory.create_voice_channel(name='Game VC', position=0, user_limit=len(gInstance.currentPlayerList))
             gInstance.channelsCreated.append(gInstance.gameVoiceChannel)
             challangeOverwrites = {
@@ -291,9 +291,9 @@ async def prepareServer(ctx):
     gCategoryNames = []
     for gc in gCategories:
         gCategoryNames.append(gc.name)
-    if 'HRProject' in gCategoryNames:
+    if 'Hidden Role Game' in gCategoryNames:
         print(f'Category found in guild: {ctx.guild.name}')
-        gameCategory = discord.utils.get(ctx.guild.categories, name='HRProject')
+        gameCategory = discord.utils.get(ctx.guild.categories, name='Hidden Role Game')
         channels = gameCategory.channels
         print(channels)
         channelNames = []
@@ -316,7 +316,7 @@ async def prepareServer(ctx):
             # TODO assign guild lobby to this channel
     else:
         print(f'creating category, text lobby, voice lobby in guild {ctx.guild.name}')
-        gameCategory = await ctx.guild.create_category(name='HRProject')
+        gameCategory = await ctx.guild.create_category(name='Hidden Role Game')
         await gameCategory.create_text_channel(name='Lobby', position=0)
         await gameCategory.create_voice_channel(name='Voice Lobby', position=1)
 
@@ -324,7 +324,7 @@ async def prepareServer(ctx):
 # Contact command
 @client.command()
 async def contact(ctx):
-    if ctx.channel.category.name == 'HRProject':
+    if ctx.channel.category.name == 'Hidden Role Game':
         await ctx.send('''github page: https://github.com/Genthus/HRDiscBot \n
                        e-mail: genthus0@gmail.com ''')
 
@@ -332,8 +332,15 @@ async def contact(ctx):
 # instructions command
 @client.command(aliases=['howtoplay', 'HowToPlay', 'howToPlay'])
 async def instructions(ctx):
-    if ctx.channel.category.name == 'HRProject':
+    if ctx.channel.category.name == 'Hidden Role Game':
         await ctx.send('A complete guide is here: https://github.com/Genthus/HRDiscBot#how-to-play')
+
+
+# cleanup command
+@client.command()
+async def cleanup(ctx):
+    if ctx.channel.category.name == 'Hidden Role Game':
+        discord.utils.get(channel)
 
 
 # delete category and channels if removed
@@ -346,7 +353,7 @@ async def on_guild_remove(ctx):
 # Help command
 @client.command(aliases=['bothelp', 'botHelp', 'aaaaaaaaaaaaa', 'hrprojecthelp'])
 async def help(ctx):
-    if ctx.channel.category.name == 'HRProject':
+    if ctx.channel.category.name == 'Hidden Role Game':
         await ctx.send(f'''type any of the keywords to activate it\n
                        help: this message\n
                        instructions: link to the game guide\n
