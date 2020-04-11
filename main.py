@@ -47,7 +47,7 @@ async def vOte(ctx):
         gInstance = guildDict[ctx.guild]
     except KeyError:
         print(f'gInstance not found in guild: {ctx.guild.name}')
-    if ctx.message.channel.category.name == 'HRProject':
+    if ctx.channel.category.name == 'HRProject':
         yes = 'yes'
         no = 'no'
         if gInstance.votingOpen is True and ctx.message.author not in gInstance.playersWhoVoted:
@@ -66,7 +66,7 @@ async def vOte(ctx):
 # Pick command
 @client.command(aliases=['pick', 'answer', 'Pick', 'Answer'])
 async def pickAnswer(ctx, *, pick):
-    if ctx.message.channel.category.name == 'HRProject':
+    if ctx.channel.category.name == 'HRProject':
         try:
             gInstance = guildDict[ctx.guild]
             gInstance.challangeClass.answers[ctx.author.name] = pick
@@ -106,7 +106,7 @@ async def playerList(ctx):
         lobby = lobbyDict[ctx.guild]
     except KeyError:
         print(f'gInstance not found in guild: {ctx.guild.name}')
-    if ctx.message.channel.category.name == 'HRProject':
+    if ctx.channel.category.name == 'HRProject':
         if len(lobby) > 0:
             await ctx.send('Players:')
             for n in range(len(lobby)):
@@ -117,7 +117,7 @@ async def playerList(ctx):
 # Join lobby command
 @client.command(aliases=['join', 'Join', 'joingame'])
 async def joinGame(ctx):
-    if ctx.message.channel.category.name == 'HRProject':
+    if ctx.channel.category.name == 'HRProject':
         global lobbyDict
         lobby = None
         try:
@@ -174,7 +174,7 @@ async def joinGame(ctx):
 # Clear lobby
 @client.command(aliases=['emptyLobby', 'clearL', 'clearl'])
 async def clearLobby(ctx):
-    if ctx.message.channel.category.name == 'HRProject':
+    if ctx.channel.category.name == 'HRProject':
         try:
             lobbyDict[ctx.guild] = []
             await ctx.send('Lobby has been emptied')
@@ -184,7 +184,7 @@ async def clearLobby(ctx):
 # Forcefully end the game
 @client.command(aliases=['killGame'])
 async def endTheGame(ctx):
-    if ctx.message.channel.category.name == 'HRProject':
+    if ctx.channel.category.name == 'HRProject':
         try:
             gInstance = guildDict[ctx.guild]
         except KeyError:
@@ -198,7 +198,7 @@ async def endTheGame(ctx):
 async def startGame(ctx):
     global lobbyDict
     global guildDict
-    if ctx.message.channel.category.name == 'HRProject':
+    if ctx.channel.category.name == 'HRProject':
         try:
             gInstance = guildDict[ctx.guild]
             if gInstance.gameIsRunning is False:
@@ -324,7 +324,7 @@ async def prepareServer(ctx):
 # Contact command
 @client.command()
 async def contact(ctx):
-    if ctx.message.channel.category.name == 'HRProject':
+    if ctx.channel.category.name == 'HRProject':
         await ctx.send('''github page: https://github.com/Genthus/HRDiscBot \n
                        e-mail: genthus0@gmail.com ''')
 
@@ -346,7 +346,7 @@ async def on_guild_remove(ctx):
 # Help command
 @client.command(aliases=['bothelp', 'botHelp', 'aaaaaaaaaaaaa', 'hrprojecthelp'])
 async def help(ctx):
-    if ctx.message.channel.category.name == 'HRProject':
+    if ctx.channel.category.name == 'HRProject':
         await ctx.send(f'''type any of the keywords to activate it\n
                        help: this message\n
                        instructions: link to the game guide\n
