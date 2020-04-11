@@ -208,7 +208,8 @@ class Game():
         currentTimer = self.roundTime[round]*60
         originalTime = currentTimer
         timerMessage = await self.globalMessage(f'Time remaining: {self.currentTimerString}')
-        await self.leaderPlayer.playerChannel.send(f'\nThese are the available players:\n {await self.playerListMessage()}')
+        playersMessage = await self.playerListMessage()
+        await self.leaderPlayer.playerChannel.send(f'\nThese are the available players:\n {playersMessage}')
         for n in range(originalTime):
             if len(self.playersNominated) < self.challangeSize[round]:
                 currentTimer -= 1
