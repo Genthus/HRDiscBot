@@ -4,21 +4,12 @@ import HRGame
 import math
 import random
 import challanges
+import os
 
 #
 # HRDiscBot, a Discord bot made by Genthus
 # github.com/Genthus/HRDiscBot
 #
-
-key = ''
-try:
-    with open('botKey.txt', 'r') as f:
-        key = f.readline()
-        f.close()
-except FileNotFoundError:
-    key = input('Paste your bot key here and press enter\n')
-    keyFile = open('botKey.txt', 'w')
-    keyFile.write(key)
 
 client = commands.Bot(command_prefix='')
 
@@ -364,4 +355,4 @@ async def plshelp(ctx):
                        killGame: ends the game and deletes everything made for the current game''')
 
 
-client.run(str(key))
+client.run(str(os.environ['botKey']))
