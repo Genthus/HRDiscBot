@@ -320,6 +320,8 @@ async def prepareServer(ctx):
         await gameCategory.create_text_channel(name='Lobby', position=0)
         await gameCategory.create_voice_channel(name='Voice Lobby', position=1)
 
+    await ctx.send('Everything is set-up!')
+
 
 # Contact command
 @client.command()
