@@ -332,7 +332,7 @@ async def contact(ctx):
 # instructions command
 @client.command(aliases=['howtoplay', 'HowToPlay', 'howToPlay'])
 async def instructions(ctx):
-    if ctx.category.name == 'HRProject':
+    if ctx.channel.category.name == 'HRProject':
         await ctx.send('A complete guide is here: https://github.com/Genthus/HRDiscBot#how-to-play')
 
 
