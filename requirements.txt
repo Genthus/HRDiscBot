@@ -1,4 +1,1 @@
 git+https://github.com/Rapptz/discord.py
-math
-random
-asyncio
