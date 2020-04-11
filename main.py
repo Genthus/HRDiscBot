@@ -11,7 +11,7 @@ import os
 # github.com/Genthus/HRDiscBot
 #
 
-client = commands.Bot(command_prefix='')
+client = commands.Bot(command_prefix='', help_command=None)
 
 guildDict = {
     # guildID: GameInstanceClass
@@ -345,7 +345,7 @@ async def on_guild_remove(ctx):
 
 # Help command
 @client.command(aliases=['bothelp', 'botHelp', 'aaaaaaaaaaaaa', 'hrprojecthelp'])
-async def plshelp(ctx):
+async def help(ctx):
     if ctx.message.channel.category.name == 'HRProject':
         await ctx.send(f'''type any of the keywords to activate it\n
                        help: this message\n
