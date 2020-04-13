@@ -361,7 +361,7 @@ async def help(ctx):
 
 # Kill all games
 @atexit.register
-def killAll():
+async def killAll():
     for k in guildDict.keys():
         await guildDict[k].killGame()
     print(f'killed {len(guildDict)} games')
