@@ -343,7 +343,7 @@ async def instructions(ctx):
 async def cleanup(ctx):
     if ctx.channel.category.name == 'Hidden Role Game':
         print('someone tried to cleanup')
-        await ctx.send('Sorry, this feature isnt available yet')
+        await ctx.send('Sorry, this feature isnt available yet.')
 
 # delete category and channels if removed
 @client.event
