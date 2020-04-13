@@ -328,8 +328,7 @@ async def prepareServer(ctx):
 @client.command()
 async def contact(ctx):
     if ctx.channel.category.name == 'Hidden Role Game':
-        await ctx.send('''github page: https://github.com/Genthus/HRDiscBot \n
-                       e-mail: genthus0@gmail.com ''')
+        await ctx.send('github page: https://github.com/Genthus/HRDiscBot \ne-mail: genthus0@gmail.com ')
 
 
 # instructions command
@@ -357,12 +356,12 @@ async def on_guild_remove(ctx):
 @client.command(aliases=['bothelp', 'botHelp', 'aaaaaaaaaaaaa', 'hrprojecthelp'])
 async def help(ctx):
     if ctx.channel.category.name == 'Hidden Role Game':
-        await ctx.send(f'''type any of the keywords to activate it\n
+        await ctx.send(f'''`type any of the keywords to activate it\n
                        help: this message\n
                        instructions: link to the game guide\n
                        join: lets you join the lobby (this can only be done in the lobby)\n
                        startGame: starts the game\n
-                       killGame: ends the game and deletes everything made for the current game''')
+                       killGame: ends the game and deletes everything made for the current game`''')
 
 
 # Kill all games
