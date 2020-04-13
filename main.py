@@ -5,6 +5,7 @@ import math
 import random
 import challanges
 import os
+import atexit
 
 #
 # HRDiscBot, a Discord bot made by Genthus
@@ -362,6 +363,14 @@ async def help(ctx):
                        join: lets you join the lobby (this can only be done in the lobby)\n
                        startGame: starts the game\n
                        killGame: ends the game and deletes everything made for the current game''')
+
+
+# Kill all games
+@atexit.register
+def killAll():
+    for k in guildDict.keys():
+        guildDict[k].killGame()
+    print(f'killed {len(guildDict)} games')
 
 
 client.run(str(os.environ['botKey']))
