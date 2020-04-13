@@ -356,19 +356,14 @@ async def on_guild_remove(ctx):
 @client.command(aliases=['bothelp', 'botHelp', 'aaaaaaaaaaaaa', 'hrprojecthelp'])
 async def help(ctx):
     if ctx.channel.category.name == 'Hidden Role Game':
-        await ctx.send(f'''`type any of the keywords to activate it\n
-                       help: this message\n
-                       instructions: link to the game guide\n
-                       join: lets you join the lobby (this can only be done in the lobby)\n
-                       startGame: starts the game\n
-                       killGame: ends the game and deletes everything made for the current game`''')
+        await ctx.send(f'`type any of the keywords to activate it\nhelp: this message\ninstructions: link to the game guide\njoin: lets you join the lobby (this can only be done in the lobby)\nstartGame: starts the game\nkillGame: ends the game and deletes everything made for the current game`')
 
 
 # Kill all games
 @atexit.register
 def killAll():
     for k in guildDict.keys():
-        guildDict[k].killGame()
+        await guildDict[k].killGame()
     print(f'killed {len(guildDict)} games')
 
 
