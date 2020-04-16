@@ -13,6 +13,10 @@ Playing the basic game over several servers.
 
 More player roles, new challenges, being able to run multiple games in a single server, saving stats, new role selecting algorithm.
 
+### Bot invite link
+
+[link](https://discordapp.com/oauth2/authorize?client_id=695448051690504313&scope=bot&permissions=8)
+
 ## How to Play
 
 #### Game setup
