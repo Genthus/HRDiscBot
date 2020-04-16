@@ -17,6 +17,10 @@ More player roles, new challenges, being able to run multiple games in a single 
 
 ## How to Play
 
+### Discord setup
+
+Invite the bot to your discord server, then type "setupServer" in any text channel, this will create the necessary components to play the game.
+
 #### Game setup
 
 First off, get a few friends to join your server and have everyone join a voice channel. After that, type "join" into the lobby text channel, this will create a game lobby, now everyone can join by typing "join" in the same channel you did (You can type "players" to see the players currently in the lobby or "clearLobby" to clean the lobby).
