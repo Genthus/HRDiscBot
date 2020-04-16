@@ -1,5 +1,5 @@
 ![Python application](https://github.com/Genthus/HRDiscBot/workflows/Python%20application/badge.svg)
-# HRDiscBot
+# Hidden Role Discord Bot
 
 This is a personal project, the original intent was to adapt Ultimate Werewolf (Bezier Games, 2008) so that it could be played over discord, however I also wanted to make The Resistance: Avalon (Indie Boards & Cards, 2012), so I ended up making a debatably new game that incorporates my favorite elements of both games.
 
