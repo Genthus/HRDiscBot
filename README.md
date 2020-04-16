@@ -3,7 +3,7 @@
 
 This is a personal project, the original intent was to adapt Ultimate Werewolf (Bezier Games, 2008) so that it could be played over discord, however I also wanted to make The Resistance: Avalon (Indie Boards & Cards, 2012), so I ended up making a debatably new game that incorporates my favorite elements of both games.
 
-The game is played over Discord, you could make the bot and add it to your server but I would recommend to create a new server and add it to that one instead, just in case.
+The bot is now being hosted so you can click the link below to invite it into your server, though i recommend creating a completely new server just in case.
 
 ### Current functionality
 
@@ -13,9 +13,7 @@ Playing the basic game over several servers.
 
 More player roles, new challenges, being able to run multiple games in a single server, saving stats, new role selecting algorithm.
 
-### Bot invite link
-
-[link](https://discordapp.com/oauth2/authorize?client_id=695448051690504313&scope=bot&permissions=8)
+### [Bot invite link](https://discordapp.com/oauth2/authorize?client_id=695448051690504313&scope=bot&permissions=8)
 
 ## How to Play
 
